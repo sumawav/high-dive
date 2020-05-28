@@ -98,7 +98,7 @@ function main() {
 
   var textureInfos = {
     "grass": {
-      texture: twgl.createTexture(gl, {src: 'texture_01.png'}),
+      texture: twgl.createTexture(gl, {src: 'texture_01.png', mag: gl.NEAREST }),
       width: 16,
       height: 16,
     },
@@ -138,7 +138,7 @@ function main() {
     // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
-    gl.disable(gl.BLEND);
+    // gl.disable(gl.BLEND);
     // gl.enable(gl.BLEND);
     // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
@@ -188,50 +188,24 @@ function main() {
       gl.enableVertexAttribArray(texcoordLocation);
       gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-
       // create world matrix
       var worldMatrix = m4.identity();
-
-      // to spin the world ?
-      // worldMatrix = m4.zRotate(worldMatrix, WORLD_ROTATE);
-      // worldMatrix = m4.translate(worldMatrix, -X_NUMBER * SCALE / 2, -Y_NUMBER * SCALE / 2, 0);
-
-      // this matrix will translate our quad to dstX, dstY
       worldMatrix = m4.translate(worldMatrix, [dstX, dstY, dstZ]);
-
-      // rotation on 3 axis
       worldMatrix = m4.rotateX(worldMatrix, drawInfo.xRot);
       worldMatrix = m4.rotateY(worldMatrix, drawInfo.yRot);
       worldMatrix = m4.rotateZ(worldMatrix, drawInfo.zRot);
-
-      // this matrix will scale our 1 unit quad
-      // from 1 unit to texWidth, texHeight units
       worldMatrix = m4.scale(worldMatrix, [dstWidth, dstHeight, dstDepth]);
 
-      // Multiply the matrices.
       var worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, worldMatrix);
+      var texMatrix = m4.identity();
 
-      // Set the matrix.
-      gl.uniformMatrix4fv(
-          worldViewProjectionLocation, false,
-          worldViewProjectionMatrix);
-      gl.uniformMatrix4fv(worldLocation, false, worldMatrix);
-
-      // Because texture coordinates go from 0 to 1
-      // and because our texture coordinates are already a unit quad
-      // we can select an area of the texture by scaling the unit quad
-      // down
-      var texMatrix = m4.translation([srcX / srcWidth, srcY / srcHeight, 0]);
-      texMatrix = m4.scale(texMatrix, [srcWidth / srcWidth, srcHeight / srcHeight, 1]);
-
-      // Set the texture matrix.
-      gl.uniformMatrix4fv(textureMatrixLocation, false, texMatrix);
-
-      // set light direction
-      gl.uniform3fv(reverseLightDirectionLocation, v3.normalize([1, 1, 1]));
-
-      // Tell the shader to get the texture from texture unit 0
       gl.uniform1i(textureLocation, 0);
+
+      twgl.setUniforms(programInfo, {
+        u_worldViewProjection: worldViewProjectionMatrix,
+        u_world: worldMatrix,
+        u_textureMatrix: texMatrix,
+      });
 
       // draw the quad (2 triangles, 6 vertices)
       gl.drawArrays(WIREFRAME ? gl.LINES : gl.TRIANGLES, 0, 6);
