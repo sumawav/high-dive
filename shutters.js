@@ -64,7 +64,7 @@ function main() {
     positions[ii + 2] = vector[2];
   }
 
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
   // Create buffer for normals
   var normalBuffer = gl.createBuffer();
@@ -79,7 +79,7 @@ function main() {
     0, 0, 1,
   ];
 
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
 
   // Create a buffer for texture coords
   var texcoordBuffer = gl.createBuffer();
@@ -94,7 +94,16 @@ function main() {
     0, 1,
   ];
 
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
+  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
+
+  const quadArrays = {
+    a_position: { numComponents: 3, data: positions },
+    a_normal:   { numComponents: 2, data: normals },
+    a_texcoord: { numComponents: 2, data: texcoords },
+  };
+
+  const bufferInfo = twgl.createBufferInfoFromArrays(gl, quadArrays);
+  console.log(bufferInfo);
 
   var textureInfos = {
     "grass": {
@@ -175,18 +184,23 @@ function main() {
       // not sure best place to put this one
       gl.bindTexture(gl.TEXTURE_2D, drawInfo.textureInfo.texture);
 
-      // Setup the attributes to pull data from our buffers
-      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-      gl.enableVertexAttribArray(positionLocation);
-      gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+      // // Setup the attributes to pull data from our buffers
+      // gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.attribs.a_position.buffer);
+      // // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      // gl.enableVertexAttribArray(positionLocation);
+      // gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+      //
+      // gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.attribs.a_normal.buffer);
+      // // gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+      // gl.enableVertexAttribArray(normalLocation);
+      // gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
+      //
+      // gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.attribs.a_texcoord.buffer);
+      // // gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+      // gl.enableVertexAttribArray(texcoordLocation);
+      // gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-      gl.enableVertexAttribArray(normalLocation);
-      gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-      gl.enableVertexAttribArray(texcoordLocation);
-      gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
+      twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 
       // create world matrix
       var worldMatrix = m4.identity();
@@ -208,7 +222,9 @@ function main() {
       });
 
       // draw the quad (2 triangles, 6 vertices)
-      gl.drawArrays(WIREFRAME ? gl.LINES : gl.TRIANGLES, 0, 6);
+      // gl.drawArrays(WIREFRAME ? gl.LINES : gl.TRIANGLES, 0, 6);
+
+      twgl.drawBufferInfo(gl, bufferInfo);
 
 
       // drawImage(
