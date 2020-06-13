@@ -28,81 +28,34 @@ function main() {
   const fragmentShaderScript = document.getElementById("drawImage-fragment-shader");
   const programInfo = twgl.createProgramInfo(gl, [vertexShaderScript.text, fragmentShaderScript.text]);
 
-  // look up where the vertex data needs to go.
-  var positionLocation = gl.getAttribLocation(programInfo.program, "a_position");
-  var texcoordLocation = gl.getAttribLocation(programInfo.program, "a_texcoord");
-  var normalLocation   = gl.getAttribLocation(programInfo.program, "a_normal");
-
-  // lookup uniforms
-  var worldViewProjectionLocation =
-      gl.getUniformLocation(programInfo.program, "u_worldViewProjection");
-  var worldLocation = gl.getUniformLocation(programInfo.program, "u_world");
-  var textureMatrixLocation = gl.getUniformLocation(programInfo.program, "u_textureMatrix");
+  // lookup a few uniforms
   var textureLocation = gl.getUniformLocation(programInfo.program, "u_texture");
   var reverseLightDirectionLocation = gl.getUniformLocation(programInfo.program, "u_reverseLightDirection");
 
-
-  // Create a buffer.
-  var positionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-  var positions = [
-    0, 0, 0,
-    1, 0, 0,
-    0, 1, 0,
-    1, 0, 0,
-    1, 1, 0,
-    0, 1, 0,
-  ];
-
-  var matrix = m4.identity();
-  // matrix = m4.translate(matrix, [-0.5, -0.5, 0, 0]);
-  for (var ii = 0; ii < positions.length; ii += 3) {
-    var vector = m4.transformPoint(matrix, [positions[ii + 0], positions[ii + 1], positions[ii + 2], 1]);
-    positions[ii + 0] = vector[0];
-    positions[ii + 1] = vector[1];
-    positions[ii + 2] = vector[2];
+  function createXYQuadVertices(size, xOffset, yOffset) {
+    size = size || 2;
+    xOffset = xOffset || 0;
+    yOffset = yOffset || 0;
+    size *= 0.5;
+    return {
+      a_position: {
+        numComponents: 2,
+        data: [
+          xOffset + -1 * size, yOffset + -1 * size,
+          xOffset + 1 * size, yOffset + -1 * size,
+          xOffset + -1 * size, yOffset + 1 * size,
+          xOffset + 1 * size, yOffset + 1 * size,
+        ]
+      },
+      a_normal: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+      a_texcoord: [0, 0, 1, 0, 0, 1, 1, 1],
+      indices: [0, 1, 2, 2, 1, 3]
+    };
   }
 
-  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-  // Create buffer for normals
-  var normalBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-
-  var normals = [
-    0, 0, 1,
-    0, 0, 1,
-    0, 0, 1,
-    0, 0, 1,
-    0, 0, 1,
-    0, 0, 1,
-  ];
-
-  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-
-  // Create a buffer for texture coords
-  var texcoordBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-
-  var texcoords = [
-    0, 0,
-    1, 0,
-    0, 1,
-    1, 0,
-    1, 1,
-    0, 1,
-  ];
-
-  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
-
-  const quadArrays = {
-    a_position: { numComponents: 3, data: positions },
-    a_normal:   { numComponents: 2, data: normals },
-    a_texcoord: { numComponents: 2, data: texcoords },
-  };
-
+  const quadArrays = createXYQuadVertices(1);
   const bufferInfo = twgl.createBufferInfoFromArrays(gl, quadArrays);
+
   console.log(bufferInfo);
 
   var textureInfos = {
@@ -181,24 +134,8 @@ function main() {
       var srcWidth  = drawInfo.textureInfo.width;
       var srcHeight = drawInfo.textureInfo.height;
 
-      // not sure best place to put this one
+      // this is how we're choosing a texture
       gl.bindTexture(gl.TEXTURE_2D, drawInfo.textureInfo.texture);
-
-      // // Setup the attributes to pull data from our buffers
-      // gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.attribs.a_position.buffer);
-      // // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-      // gl.enableVertexAttribArray(positionLocation);
-      // gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-      //
-      // gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.attribs.a_normal.buffer);
-      // // gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-      // gl.enableVertexAttribArray(normalLocation);
-      // gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
-      //
-      // gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.attribs.a_texcoord.buffer);
-      // // gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-      // gl.enableVertexAttribArray(texcoordLocation);
-      // gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
 
       twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 
@@ -219,10 +156,8 @@ function main() {
         u_worldViewProjection: worldViewProjectionMatrix,
         u_world: worldMatrix,
         u_textureMatrix: texMatrix,
+        // u_texture: 0,
       });
-
-      // draw the quad (2 triangles, 6 vertices)
-      // gl.drawArrays(WIREFRAME ? gl.LINES : gl.TRIANGLES, 0, 6);
 
       twgl.drawBufferInfo(gl, bufferInfo);
 
@@ -310,84 +245,6 @@ function main() {
     requestAnimationFrame(render);
   }
   requestAnimationFrame(render);
-
-
-}
-
-
-
-// Setup a ui.
-webglLessonsUI.setupSlider("#fieldofview", {
-  value: radToDeg(FOV_ANGLE),
-  slide: updateFOV,
-  min: 0,
-  max: 180,
-});
-function updateFOV(event, ui) {
-  FOV_ANGLE = degToRad(ui.value);
-}
-webglLessonsUI.setupSlider("#cameraAngle", {
-  value: radToDeg(CAMERA_ANGLE),
-  slide: updateCameraAngle,
-  min: -360,
-  max: 360,
-});
-function updateCameraAngle(event, ui) {
-  CAMERA_ANGLE = degToRad(ui.value);
-}
-webglLessonsUI.setupSlider("#cameraTilt", {
-  value: radToDeg(CAMERA_TILT),
-  slide: updateCameraTilt,
-  min: 0,
-  max: 90,
-});
-function updateCameraTilt(event, ui) {
-  CAMERA_TILT = degToRad(ui.value);
-}
-webglLessonsUI.setupSlider("#cameraX", {
-  value: CAMERA_X,
-  slide: updateCameraX,
-  min: -400,
-  max: 400,
-});
-function updateCameraX(event, ui) {
-  CAMERA_X = ui.value;
-}
-webglLessonsUI.setupSlider("#cameraY", {
-  value: CAMERA_Y,
-  slide: updateCameraY,
-  min: -400,
-  max: 400,
-});
-function updateCameraY(event, ui) {
-  CAMERA_Y = ui.value;
-}
-webglLessonsUI.setupSlider("#cameraZ", {
-  value: CAMERA_Z,
-  slide: updateCameraZ,
-  min: -400,
-  max: 400,
-});
-function updateCameraZ(event, ui) {
-  CAMERA_Z = ui.value;
-}
-webglLessonsUI.setupSlider("#cameraZoom", {
-  value: CAMERA_RADIUS,
-  slide: updateCameraRadius,
-  min: 0,
-  max: 800,
-});
-function updateCameraRadius(event, ui) {
-  CAMERA_RADIUS = ui.value;
-}
-webglLessonsUI.setupSlider("#worldrotate", {
-  value: radToDeg(WORLD_ROTATE),
-  slide: updateWorldRotate,
-  min: 0,
-  max: 800,
-});
-function updateWorldRotate(event, ui) {
-  WORLD_ROTATE = degToRad(ui.value);
 }
 
 
