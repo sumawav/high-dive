@@ -3,7 +3,6 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
   var drawInfos = [];
   var apothem = 0.5 * scale; // distance from center of regular polygon to midpoint of side
   var xStep = 2 * apothem;
-  var initZ = 0;
 
   for (var jj = 0; jj < size; ++jj) {
     for (var ii = 0; ii < size; ++ii) {
@@ -23,7 +22,7 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
         xRot: 0,
         yRot: 0,
         zRot: 0,
-        apothem: apothem,
+        // apothem: apothem,
         walls: {
           top: 0,
           bottom: 0,
@@ -34,6 +33,8 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
       drawInfos.push(drawInfo);
     }
   }
+
+  // fills in walls
   for (var ii = 0; ii < drawInfos.length; ++ii) {
     var x = ii % (size);
     var y = Math.floor(ii / (size));
@@ -75,5 +76,80 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
       }
     }
   }
+
+  // add walls to drawInfos
+  for (let jj = 0; jj < size; ++jj) {
+    for (let ii = 0; ii < size; ++ii) {
+      const x = initX + ii * xStep;
+      const y = initY + jj * xStep;
+      const drawInfo = drawInfos[jj*size + ii];
+      const wallInfoTemplate = {
+        x: x,
+        y: y,
+        z: scale * terrain[jj*size + ii],
+        dx: 0,
+        dy: 0,
+        dz: 0,
+        xScale: scale,
+        yScale: scale,
+        zScale: 1,
+        textureInfo: textureInfos["dirt"],
+        xRot: 0,
+        yRot: 0,
+        zRot: 0,
+        walls: null,
+      };
+      
+
+      if (drawInfo.walls.bottom !== 0) {
+        let wallInfo = Object.assign({},wallInfoTemplate);
+        wallInfo.y -= apothem;
+        wallInfo.z -= drawInfo.walls.bottom/2;
+        wallInfo.yScale *= drawInfo.walls.bottom/scale;
+        wallInfo.xRot = PI/2;
+        drawInfos.push(wallInfo);
+      }
+      if (drawInfo.walls.top !== 0) {
+        let wallInfo = Object.assign({},wallInfoTemplate);
+        wallInfo.y += apothem;
+        wallInfo.z -= drawInfo.walls.top/2;
+        wallInfo.yScale *= drawInfo.walls.top/scale;
+        wallInfo.xRot = -PI/2;
+        drawInfos.push(wallInfo);
+      }
+      if (drawInfo.walls.left !== 0) {
+        let wallInfo = Object.assign({},wallInfoTemplate);
+        wallInfo.x -= apothem;
+        wallInfo.z -= drawInfo.walls.left/2;
+        wallInfo.xScale *= drawInfo.walls.left/scale;
+        wallInfo.yRot = -PI/2;
+        drawInfos.push(wallInfo);
+      }
+      if (drawInfo.walls.right !== 0) {
+        let wallInfo = Object.assign({},wallInfoTemplate);
+        wallInfo.x += apothem;
+        wallInfo.z -= drawInfo.walls.right/2;
+        wallInfo.xScale *= drawInfo.walls.right/scale;
+        wallInfo.yRot = PI/2;
+        drawInfos.push(wallInfo);
+      }
+    }
+  }
   return drawInfos;
 }
+
+
+
+let ignoreMe = `data:image/png;
+base64,
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAZhJREFUOI1lkz1Ow0AQhb84u4kVIaUIlpAo3JLOFWdIZ65AwQ0oUlLmCByDdDkCZToLicZ15MJCoFXstSk2s94kW3ln5+
+e9N8+
+jh8/Xfrw9oIsJzfKITiNMtgAg3lc0ZeffwiN5UbyvAHyCFAM0ZYfNE8x6ji4mvjDMUxKUSbqor6bF+
+wpWoAnyUjdYebhUUAxIZJLe1DTLbrgLndLlqPH24PnEVNgsAcCKBsujK+
+KIzRPIBm3YKcb3t49vfEf01Q9d3RN9/TE1hvZuRns3Y2oMjW4BmH60qJtfTLZg+
+uFiI9kC4CaE6p+
+QhSiBs7uSFZr13IsmdKTAUzw1tnniKSqdRjQciTe1K17PfaI0acqOcXmAYoIGdDrER9nTS8+
+qPZsgaos/LuGHJwpNcQZ5PYdV6+
+gF5hKdbJ5g8wQle4839ZUbTbZw0EU4j8rxN9mCUfb+
+3Iu7POSTWWyeXEEWhEJVDXBcV72b+
+CY6rSDYgKCy4Ay1qYmasjt7DDUQpeVNvuN95bemAGfJ8oDNEzedyEMXJJe/OCe9/gG35g89HnUiXgAAAABJRU5ErkJggg==`

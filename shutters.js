@@ -60,12 +60,12 @@ function main() {
 
   var textureInfos = {
     "grass": {
-      texture: twgl.createTexture(gl, {src: 'texture_01.png', mag: gl.NEAREST }),
+      texture: twgl.createTexture(gl, {src: 'texture_01.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
       width: 16,
       height: 16,
     },
     "dirt": {
-      texture: twgl.createTexture(gl, {src: 'texture_02.png'}),
+      texture: twgl.createTexture(gl, {src: 'texture_02.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
       width: 16,
       height: 16,
     },
@@ -79,6 +79,11 @@ function main() {
   var chunks = [];
   chunks.push(createChunk(0, 0, X_NUMBER, SCALE, terrain, textureInfos));
   chunks.push(createChunk(X_NUMBER*SCALE, 0, X_NUMBER, SCALE, terrain, textureInfos));
+  // chunks.push(createChunk(0, X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
+  // chunks.push(createChunk(X_NUMBER*SCALE, X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
+  // chunks.push(createChunk(X_NUMBER*SCALE, 2*X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
+  // chunks.push(createChunk(2*X_NUMBER*SCALE, X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
+  // chunks.push(createChunk(2*X_NUMBER*SCALE, 2*X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
 
   function update(deltaTime) {
     CAMERA_ANGLE -= ROTATE ? deltaTime : 0;
@@ -89,10 +94,7 @@ function main() {
 
   function draw() {
     twgl.resizeCanvasToDisplaySize(gl.canvas);
-
-
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     // gl.depthMask(true);
     // gl.clearDepth(1);
@@ -122,112 +124,46 @@ function main() {
 
     chunks.forEach(function(chunk){
 
-    chunk.forEach(function(drawInfo) {
-      var dstX      = drawInfo.x;
-      var dstY      = drawInfo.y;
-      var dstZ      = drawInfo.z;
-      var dstWidth  = drawInfo.xScale;
-      var dstHeight = drawInfo.yScale;
-      var dstDepth  = drawInfo.zScale;
-      var srcX      = 0;
-      var srcY      = 0;
-      var srcWidth  = drawInfo.textureInfo.width;
-      var srcHeight = drawInfo.textureInfo.height;
+      chunk.forEach(function(drawInfo) {
+        var dstX      = drawInfo.x;
+        var dstY      = drawInfo.y;
+        var dstZ      = drawInfo.z;
+        var dstWidth  = drawInfo.xScale;
+        var dstHeight = drawInfo.yScale;
+        var dstDepth  = drawInfo.zScale;
+        // var srcX      = 0;
+        // var srcY      = 0;
+        // var srcWidth  = drawInfo.textureInfo.width;
+        // var srcHeight = drawInfo.textureInfo.height;
 
-      // this is how we're choosing a texture
-      gl.bindTexture(gl.TEXTURE_2D, drawInfo.textureInfo.texture);
+        // this is how we're choosing a texture
+        gl.bindTexture(gl.TEXTURE_2D, drawInfo.textureInfo.texture);
 
-      twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+        twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 
-      // create world matrix
-      var worldMatrix = m4.identity();
-      worldMatrix = m4.translate(worldMatrix, [dstX, dstY, dstZ]);
-      worldMatrix = m4.rotateX(worldMatrix, drawInfo.xRot);
-      worldMatrix = m4.rotateY(worldMatrix, drawInfo.yRot);
-      worldMatrix = m4.rotateZ(worldMatrix, drawInfo.zRot);
-      worldMatrix = m4.scale(worldMatrix, [dstWidth, dstHeight, dstDepth]);
+        // create world matrix
+        var worldMatrix = m4.identity();
+        worldMatrix = m4.translate(worldMatrix, [dstX, dstY, dstZ]);
+        worldMatrix = m4.rotateX(worldMatrix, drawInfo.xRot);
+        worldMatrix = m4.rotateY(worldMatrix, drawInfo.yRot);
+        worldMatrix = m4.rotateZ(worldMatrix, drawInfo.zRot);
+        worldMatrix = m4.scale(worldMatrix, [dstWidth, dstHeight, dstDepth]);
 
-      var worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, worldMatrix);
-      var texMatrix = m4.identity();
+        var worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, worldMatrix);
+        var texMatrix = m4.identity();
+        texMatrix = m4.scale(texMatrix, [dstWidth / SCALE, dstHeight / SCALE, 1]);
 
-      gl.uniform1i(textureLocation, 0);
+        gl.uniform1i(textureLocation, 0);
 
-      twgl.setUniforms(programInfo, {
-        u_worldViewProjection: worldViewProjectionMatrix,
-        u_world: worldMatrix,
-        u_textureMatrix: texMatrix,
-        // u_texture: 0,
+        twgl.setUniforms(programInfo, {
+          u_worldViewProjection: worldViewProjectionMatrix,
+          u_world: worldMatrix,
+          u_textureMatrix: texMatrix,
+        });
+
+        twgl.drawBufferInfo(gl, bufferInfo);
       });
-
-      twgl.drawBufferInfo(gl, bufferInfo);
-
-
-      // drawImage(
-      //   drawInfo.textureInfo.texture,
-      //   srcWidth,
-      //   srcHeight,
-      //   srcX, srcY, srcWidth, srcHeight,
-      //   dstX, dstY, dstZ, dstWidth, dstHeight, dstDepth,
-      //   drawInfo.xRot, drawInfo.yRot, drawInfo.zRot
-      // );
-
-      // if (drawInfo.walls.bottom !== 0) {
-      //   drawImage(
-      //     textureInfos["dirt"].texture,
-      //     srcWidth,
-      //     srcHeight,
-      //     srcX, srcY, srcWidth, drawInfo.walls.bottom,
-      //     dstX,
-      //     dstY - drawInfo.apothem,
-      //     dstZ - drawInfo.walls.bottom/2,
-      //     dstWidth, drawInfo.walls.bottom, dstDepth,
-      //     PI/2, 0, 0
-      //   );
-      // }
-      // if (drawInfo.walls.top !== 0) {
-      //   drawImage(
-      //     textureInfos["dirt"].texture,
-      //     srcWidth,
-      //     srcHeight,
-      //     srcX, srcY, srcWidth, drawInfo.walls.top,
-      //     dstX,
-      //     dstY + drawInfo.apothem,
-      //     dstZ - drawInfo.walls.top/2,
-      //     dstWidth, drawInfo.walls.top, dstDepth,
-      //     -PI/2, 0, 0
-      //   );
-      // }
-      // if (drawInfo.walls.left !== 0) {
-      //   drawImage(
-      //     textureInfos["dirt"].texture,
-      //     srcWidth,
-      //     srcHeight,
-      //     srcX, srcY, drawInfo.walls.left, srcHeight,
-      //     dstX - drawInfo.apothem,
-      //     dstY,
-      //     dstZ - drawInfo.walls.left/2,
-      //     drawInfo.walls.left, dstHeight, dstDepth,
-      //     0, -PI/2, 0
-      //   );
-      // }
-      // if (drawInfo.walls.right !== 0) {
-      //   drawImage(
-      //     textureInfos["dirt"].texture,
-      //     srcWidth,
-      //     srcHeight,
-      //     srcX, srcY, drawInfo.walls.right, srcHeight,
-      //     dstX + drawInfo.apothem,
-      //     dstY,
-      //     dstZ - drawInfo.walls.right/2,
-      //     drawInfo.walls.right, dstHeight, dstDepth,
-      //     0, PI/2, 0
-      //   );
-      // }
-    })
-
-  });
-
-
+    });
 
   }
 
