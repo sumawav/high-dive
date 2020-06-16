@@ -1,26 +1,25 @@
 "use strict";
 
 // Create a capturer that exports a WebM video
-var capturer = new CCapture( {
+const capturer = new CCapture( {
   format: 'webm',
   framerate: 30,
   verbose: true
 } );
 
-var canvas;
-var gl;
+const meter = new FPSMeter({right: 0, bottom: 0, left: 'auto', top: 'auto'});
 
 const m4 = twgl.m4;
 const v3 = twgl.v3;
 
+twgl.setAttributePrefix('a_');
+
 function main() {
-  // Get A WebGL context
-  canvas = document.getElementById("canvas");
-  gl = canvas.getContext("webgl");
+  const canvas = document.getElementById("canvas");
+  const gl = canvas.getContext("webgl");
   if (!gl) {
     return;
-  }
-
+  }  
   twgl.resizeCanvasToDisplaySize(gl.canvas);
 
   // setup GLSL program
@@ -38,7 +37,7 @@ function main() {
     yOffset = yOffset || 0;
     size *= 0.5;
     return {
-      a_position: {
+      position: {
         numComponents: 2,
         data: [
           xOffset + -1 * size, yOffset + -1 * size,
@@ -47,13 +46,27 @@ function main() {
           xOffset + 1 * size, yOffset + 1 * size,
         ]
       },
-      a_normal: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
-      a_texcoord: [0, 0, 1, 0, 0, 1, 1, 1],
-      indices: [0, 1, 2, 2, 1, 3]
+      normal: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+      texcoord: [0, 0, 1, 0, 0, 1, 1, 1],
+      indices: [0, 1, 2, 2, 1, 3],
+      worldPosition: {
+        numComponents: 3,
+        data: [],
+      },
+      worldRotate: {
+        numComponents: 3,
+        data: [],
+      },
+      worldScale: {
+        numComponents: 3,
+        data: [],
+      }
     };
   }
 
   const quadArrays = createXYQuadVertices(1);
+
+
   const bufferInfo = twgl.createBufferInfoFromArrays(gl, quadArrays);
 
   console.log(bufferInfo);
@@ -78,19 +91,41 @@ function main() {
 
   var chunks = [];
   chunks.push(createChunk(0, 0, X_NUMBER, SCALE, terrain, textureInfos));
-  chunks.push(createChunk(X_NUMBER*SCALE, 0, X_NUMBER, SCALE, terrain, textureInfos));
+  // chunks.push(createChunk(X_NUMBER*SCALE, 0, X_NUMBER, SCALE, terrain, textureInfos));
   // chunks.push(createChunk(0, X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
   // chunks.push(createChunk(X_NUMBER*SCALE, X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
   // chunks.push(createChunk(X_NUMBER*SCALE, 2*X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
   // chunks.push(createChunk(2*X_NUMBER*SCALE, X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
   // chunks.push(createChunk(2*X_NUMBER*SCALE, 2*X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
 
-  function update(deltaTime) {
-    CAMERA_ANGLE -= ROTATE ? deltaTime : 0;
-    // drawInfos.forEach(function(drawInfo) {
-    //   drawInfo.x += drawInfo.dx * SPEED * deltaTime;
-    // });
-  }
+  let allArrays = [];
+
+  chunks.forEach(function(chunk){
+    chunk.forEach(function(drawInfo) {
+      let translation = [drawInfo.x, drawInfo.y, drawInfo.z];
+      let rotation = [drawInfo.xRot, drawInfo.yRot, drawInfo.zRot];
+      let scale = [drawInfo.xScale, drawInfo.yScale, drawInfo.zScale];
+      let arrays = createXYQuadVertices(1);
+      const quad_indices = 4;
+      for (let ii = 0; ii  < quad_indices; ++ii) {
+        arrays.worldPosition.data = arrays.worldPosition.data.concat(translation);
+        arrays.worldRotate.data = arrays.worldRotate.data.concat(rotation);
+        arrays.worldScale.data = arrays.worldScale.data.concat(scale);
+      }
+      allArrays.push(arrays);
+    });
+  });
+  console.log(allArrays);
+  const combinedArrays = twgl.primitives.concatVertices(allArrays);
+  console.log(combinedArrays);
+  const newBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedArrays);
+  console.log(newBufferInfo);
+
+
+
+
+
+  function update(deltaTime) {}
 
   function draw() {
     twgl.resizeCanvasToDisplaySize(gl.canvas);
@@ -106,8 +141,6 @@ function main() {
     // gl.enable(gl.BLEND);
     // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    // this matirx will convert from pixels to clip space
-    // var matrix = m4.orthographic(0, gl.canvas.width, gl.canvas.height, 0, -1, 1);
     var projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 2000);
 
     // Compute a matrix for the camera
@@ -123,7 +156,6 @@ function main() {
     gl.useProgram(programInfo.program);
 
     chunks.forEach(function(chunk){
-
       chunk.forEach(function(drawInfo) {
         var dstX      = drawInfo.x;
         var dstY      = drawInfo.y;
@@ -177,6 +209,7 @@ function main() {
     draw();
 
     capturer.capture(canvas);
+    meter.tick();
 
     requestAnimationFrame(render);
   }

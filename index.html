@@ -11,12 +11,16 @@
     <div id="fieldofview"></div>
     <div id="worldrotate"></div>
   </div>
+  <div id="fps"></div>
 </div>
 <!-- vertex shader -->
 <script  id="drawImage-vertex-shader" type="x-shader/x-vertex">
 attribute vec4 a_position;
 attribute vec2 a_texcoord;
 attribute vec3 a_normal;
+attribute vec3 a_worldPosition;
+attribute vec3 a_worldRotate;
+attribute vec3 a_worldScale;
 
 // uniform mat4 u_matrix;
 uniform mat4 u_worldViewProjection;
@@ -33,6 +37,32 @@ void main() {
   v_normal = mat3(u_world) * a_normal;
 }
 </script>
+
+<script  id="drawImage-vertex-shader-QQQQQQQQQQQQQQ" type="x-shader/x-vertex">
+  attribute vec4 a_position;
+  attribute vec2 a_texcoord;
+  attribute vec3 a_normal;
+  attribute vec3 a_worldPosition;
+  attribute vec3 a_worldRotate;
+  attribute vec3 a_worldScale;
+  
+  // uniform mat4 u_matrix;
+  // uniform mat4 u_worldViewProjection;
+  // uniform mat4 u_world;
+  uniform mat4 u_textureMatrix;
+  
+  varying vec2 v_texcoord;
+  varying vec3 v_normal;
+  
+  void main() {
+    v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
+
+    vec4 wp = a_position + vec4(a_worldPosition, 0);
+    
+  
+    v_normal = mat3(u_world) * a_normal;
+  }
+  </script>
 <!-- fragment shader -->
 <script  id="drawImage-fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
@@ -66,6 +96,7 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
 <script src="CCapture.all.min.js"></script>
 <script src="webm-writer-0.2.4.js"></script>
 <script src="ui.js"></script>
+<script src="fpsmeter.min.js"></script>
 
 <script src="PARAMS.js"></script>
 <script src="terrain.js"></script>
