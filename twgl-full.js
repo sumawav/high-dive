@@ -10588,4 +10588,3 @@ function createVAOFromBufferInfo(gl, programInfo, bufferInfo) {
 
 /******/ });
 });
-//# sourceMappingURL=twgl-full.js.map

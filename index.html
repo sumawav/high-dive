@@ -22,7 +22,7 @@ attribute vec3 a_worldPosition;
 attribute vec3 a_worldRotate;
 attribute vec3 a_worldScale;
 
-// uniform mat4 u_matrix;
+uniform mat4 u_viewProjection;
 uniform mat4 u_worldViewProjection;
 uniform mat4 u_world;
 uniform mat4 u_textureMatrix;
@@ -31,38 +31,34 @@ varying vec2 v_texcoord;
 varying vec3 v_normal;
 
 void main() {
-  gl_Position = u_worldViewProjection * a_position;
+  mat4 wvp = u_viewProjection * u_world;
+  gl_Position = wvp * a_position;
   v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
 
   v_normal = mat3(u_world) * a_normal;
 }
 </script>
 
-<script  id="drawImage-vertex-shader-QQQQQQQQQQQQQQ" type="x-shader/x-vertex">
+<script  id="drawImage-vertex-shader2" type="x-shader/x-vertex">
   attribute vec4 a_position;
   attribute vec2 a_texcoord;
   attribute vec3 a_normal;
-  attribute vec3 a_worldPosition;
-  attribute vec3 a_worldRotate;
-  attribute vec3 a_worldScale;
+  attribute mat4 a_world;
   
-  // uniform mat4 u_matrix;
-  // uniform mat4 u_worldViewProjection;
-  // uniform mat4 u_world;
+  uniform mat4 u_viewProjection;
   uniform mat4 u_textureMatrix;
   
   varying vec2 v_texcoord;
   varying vec3 v_normal;
   
   void main() {
+    mat4 wvp = u_viewProjection * a_world;
+    gl_Position = wvp * a_position;
     v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
-
-    vec4 wp = a_position + vec4(a_worldPosition, 0);
-    
   
-    v_normal = mat3(u_world) * a_normal;
+    v_normal = mat3(a_world) * a_normal;
   }
-  </script>
+</script>
 <!-- fragment shader -->
 <script  id="drawImage-fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
