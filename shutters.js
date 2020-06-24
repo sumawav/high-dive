@@ -57,28 +57,9 @@ function main() {
       world: {
         numComponents: 16,
         data: [],
-      }
-      // worldPosition: {
-      //   numComponents: 3,
-      //   data: [],
-      // },
-      // worldRotate: {
-      //   numComponents: 3,
-      //   data: [],
-      // },
-      // worldScale: {
-      //   numComponents: 3,
-      //   data: [],
-      // }
+      },
     };
   }
-
-  // const quadArrays = createXYQuadVertices(1);
-
-
-  // const bufferInfo = twgl.createBufferInfoFromArrays(gl, quadArrays);
-
-  // console.log(bufferInfo);
 
   var textureInfos = {
     "grass": {
@@ -108,120 +89,84 @@ function main() {
   chunks.push(createChunk(2*X_NUMBER*SCALE, 2*X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
 
   let allArrays = [];
+  let tileArrays = [];
+  let wallArrays = [];
 
   // make an array of all arrays
   chunks.forEach(function(chunk){
-    chunk.forEach(function(drawInfo) {
-      let translation = [drawInfo.x, drawInfo.y, drawInfo.z];
-      let scale = [drawInfo.xScale, drawInfo.yScale, drawInfo.zScale];
+    chunk.tiles.forEach(function(tile) {
+      let translation = [tile.x, tile.y, tile.z];
+      let scale = [tile.xScale, tile.yScale, tile.zScale];
       let arrays = createXYQuadVertices(1);
       let worldMatrix = m4.identity();
       let worldMatrixArray = twgl.primitives.createAugmentedTypedArray(16, 4);
       const quad_vertices = 4;
 
-      // pre-calculate world matrix for every quad in chunk
+      // pre-calculate world matrix for every quad in chunk 
       worldMatrix = m4.translate(worldMatrix, translation);
-      worldMatrix = m4.rotateX(worldMatrix, drawInfo.xRot);
-      worldMatrix = m4.rotateY(worldMatrix, drawInfo.yRot);
-      worldMatrix = m4.rotateZ(worldMatrix, drawInfo.zRot);
+      worldMatrix = m4.rotateX(worldMatrix, tile.xRot);
+      worldMatrix = m4.rotateY(worldMatrix, tile.yRot);
+      worldMatrix = m4.rotateZ(worldMatrix, tile.zRot);
       worldMatrix = m4.scale(worldMatrix, scale);
 
       for (let ii = 0; ii  < quad_vertices; ++ii) {
         worldMatrixArray.push(worldMatrix);
+
+        // scale texcoordinates
+        arrays.texcoord.data[2 * ii] *= tile.xScale / SCALE;
+        arrays.texcoord.data[(2 * ii) + 1] *= tile.yScale / SCALE;
       }
       arrays.world.data = worldMatrixArray
-      allArrays.push(arrays);
+      tileArrays.push(arrays);
     });
-  });
-  console.log(allArrays);
-  const combinedArrays = twgl.primitives.concatVertices(allArrays);
-  console.log(combinedArrays);
-  const chunksBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedArrays);
-  console.log(chunksBufferInfo);
 
+    chunk.walls.forEach(function(wall) {
+      let translation = [wall.x, wall.y, wall.z];
+      let scale = [wall.xScale, wall.yScale, wall.zScale];
+      let arrays = createXYQuadVertices(1);
+      let worldMatrix = m4.identity();
+      let worldMatrixArray = twgl.primitives.createAugmentedTypedArray(16, 4);
+      const quad_vertices = 4;
+
+      // pre-calculate world matrix for every quad in chunk 
+      worldMatrix = m4.translate(worldMatrix, translation);
+      worldMatrix = m4.rotateX(worldMatrix, wall.xRot);
+      worldMatrix = m4.rotateY(worldMatrix, wall.yRot);
+      worldMatrix = m4.rotateZ(worldMatrix, wall.zRot);
+      worldMatrix = m4.scale(worldMatrix, scale);
+
+      for (let ii = 0; ii  < quad_vertices; ++ii) {
+        worldMatrixArray.push(worldMatrix);
+
+        // scale texcoordinates
+        arrays.texcoord.data[2 * ii] *= wall.xScale / SCALE;
+        arrays.texcoord.data[(2 * ii) + 1] *= wall.yScale / SCALE;
+      }
+      arrays.world.data = worldMatrixArray
+      wallArrays.push(arrays);
+    });
+
+  });
+
+  allArrays = tileArrays.concat(wallArrays);
+  
+
+  console.log(allArrays);
+  // const combinedArrays = twgl.primitives.concatVertices(allArrays);
+  const combinedTileArrays = twgl.primitives.concatVertices(tileArrays);
+  const combinedWallArrays = twgl.primitives.concatVertices(wallArrays);
+  console.log(combinedTileArrays);
+  // const chunksBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedArrays);
+  const tilesBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedTileArrays);
+  const wallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWallArrays);
+  console.log(tilesBufferInfo);
 
 
 
 
   function update(deltaTime) {}
 
-  // function draw() {
-  //   twgl.resizeCanvasToDisplaySize(gl.canvas);
-  //   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-  //   gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  //   // gl.depthMask(true);
-  //   // gl.clearDepth(1);
-  //   gl.clear(gl.COLOR_BUFFER_BIT);
-  //   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-  //   gl.enable(gl.CULL_FACE);
-  //   gl.enable(gl.DEPTH_TEST);
-  //   // gl.disable(gl.BLEND);
-  //   // gl.enable(gl.BLEND);
-  //   // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-  //   var projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 2000);
-
-  //   // Compute a matrix for the camera
-  //   var cameraMatrix = m4.identity();
-  //   cameraMatrix = m4.translate(cameraMatrix, [CAMERA_X, CAMERA_Y, CAMERA_Z]);
-  //   cameraMatrix = m4.rotateZ(cameraMatrix, CAMERA_ANGLE);
-  //   cameraMatrix = m4.translate(cameraMatrix, [0, -CAMERA_RADIUS * 2.5, CAMERA_RADIUS]);
-  //   cameraMatrix = m4.rotateX(cameraMatrix, CAMERA_TILT);
-
-  //   var viewMatrix = m4.inverse(cameraMatrix);
-  //   var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
-
-  //   gl.useProgram(programInfo.program);
-
-  //   twgl.setUniforms(programInfo, {
-  //     u_viewProjection: viewProjectionMatrix,
-  //   });
-
-  //   chunks.forEach(function(chunk){
-  //     chunk.forEach(function(drawInfo) {
-  //       var dstX      = drawInfo.x;
-  //       var dstY      = drawInfo.y;
-  //       var dstZ      = drawInfo.z;
-  //       var dstWidth  = drawInfo.xScale;
-  //       var dstHeight = drawInfo.yScale;
-  //       var dstDepth  = drawInfo.zScale;
-  //       // var srcX      = 0;
-  //       // var srcY      = 0;
-  //       // var srcWidth  = drawInfo.textureInfo.width;
-  //       // var srcHeight = drawInfo.textureInfo.height;
-
-  //       // this is how we're choosing a texture
-  //       gl.bindTexture(gl.TEXTURE_2D, drawInfo.textureInfo.texture);
-
-  //       twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
-
-  //       // create world matrix
-  //       var worldMatrix = m4.identity();
-  //       worldMatrix = m4.translate(worldMatrix, [dstX, dstY, dstZ]);
-  //       worldMatrix = m4.rotateX(worldMatrix, drawInfo.xRot);
-  //       worldMatrix = m4.rotateY(worldMatrix, drawInfo.yRot);
-  //       worldMatrix = m4.rotateZ(worldMatrix, drawInfo.zRot);
-  //       worldMatrix = m4.scale(worldMatrix, [dstWidth, dstHeight, dstDepth]);
-
-  //       var worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, worldMatrix);
-  //       var texMatrix = m4.identity();
-  //       texMatrix = m4.scale(texMatrix, [dstWidth / SCALE, dstHeight / SCALE, 1]);
-
-  //       gl.uniform1i(textureLocation, 0);
-
-  //       twgl.setUniforms(programInfo, {
-  //         u_worldViewProjection: worldViewProjectionMatrix,
-  //         u_world: worldMatrix,
-  //         u_textureMatrix: texMatrix,
-  //       });
-
-  //       twgl.drawBufferInfo(gl, bufferInfo);
-  //     });
-  //   });
-
-  // }
-
-  function draw2() {
+  function draw() {
     twgl.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -248,10 +193,9 @@ function main() {
     gl.useProgram(programInfo.program);
 
     gl.bindTexture(gl.TEXTURE_2D, textureInfos.grass.texture);
-    twgl.setBuffersAndAttributes(gl, programInfo, chunksBufferInfo);
+    twgl.setBuffersAndAttributes(gl, programInfo, tilesBufferInfo);
 
-    var texMatrix = m4.identity();
-    // texMatrix = m4.scale(texMatrix, [dstWidth / SCALE, dstHeight / SCALE, 1]);
+    var texMatrix = m4.identity(); // not actually needed
 
     gl.uniform1i(textureLocation, 0);
 
@@ -260,7 +204,23 @@ function main() {
       u_textureMatrix: texMatrix,
     });
 
-    twgl.drawBufferInfo(gl, chunksBufferInfo);
+    twgl.drawBufferInfo(gl, tilesBufferInfo);
+
+    // ---
+
+    gl.bindTexture(gl.TEXTURE_2D, textureInfos.dirt.texture);
+    twgl.setBuffersAndAttributes(gl, programInfo, wallsBufferInfo);
+
+    var texMatrix = m4.identity(); // not actually needed
+
+    gl.uniform1i(textureLocation, 0);
+
+    twgl.setUniforms(programInfo, {
+      u_viewProjection: viewProjectionMatrix,
+      u_textureMatrix: texMatrix,
+    });
+
+    twgl.drawBufferInfo(gl, wallsBufferInfo);
   }
 
 
@@ -271,7 +231,7 @@ function main() {
     then = now;
 
     update(deltaTime);
-    draw2();
+    draw();
 
     capturer.capture(canvas);
     meter.tick();

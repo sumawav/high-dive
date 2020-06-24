@@ -1,6 +1,7 @@
 function createChunk(initX, initY, size, scale, terrain, textureInfos){
 
-  var drawInfos = [];
+  let tiles = [];
+  let walls = [];
   var apothem = 0.5 * scale; // distance from center of regular polygon to midpoint of side
   var xStep = 2 * apothem;
 
@@ -8,7 +9,7 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
     for (var ii = 0; ii < size; ++ii) {
       var x = initX + ii * xStep;
       var y = initY + jj * xStep;
-      var drawInfo = {
+      var tile = {
         x: x,
         y: y,
         z: scale * terrain[jj*size + ii],
@@ -30,15 +31,15 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
           right: 0,
         }
       };
-      drawInfos.push(drawInfo);
+      tiles.push(tile);
     }
   }
 
   // fills in walls
-  for (var ii = 0; ii < drawInfos.length; ++ii) {
+  for (var ii = 0; ii < tiles.length; ++ii) {
     var x = ii % (size);
     var y = Math.floor(ii / (size));
-    var tileHeight = drawInfos[ii].z;
+    var tileHeight = tiles[ii].z;
     var rightMostColumn = size - 1;
     var leftMostColumn = 0;
     var topMostRow = size - 1;
@@ -46,43 +47,43 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
 
     // borders around chunk
     if (y === bottomMostRow){
-      drawInfos[ii].walls.bottom = tileHeight;
+      tiles[ii].walls.bottom = tileHeight;
     }
     if (y === topMostRow){
-      drawInfos[ii].walls.top = tileHeight;
+      tiles[ii].walls.top = tileHeight;
     }
     if (x === rightMostColumn){
-      drawInfos[ii].walls.right = tileHeight;
+      tiles[ii].walls.right = tileHeight;
     }
     if (x === leftMostColumn){
-      drawInfos[ii].walls.left = tileHeight;
+      tiles[ii].walls.left = tileHeight;
     }
     // right check
     if (x < (rightMostColumn)){
-      var rightTileHeight = drawInfos[ii + 1].z;
+      var rightTileHeight = tiles[ii + 1].z;
       if (tileHeight > rightTileHeight) {
-        drawInfos[ii].walls.right = tileHeight - rightTileHeight;
+        tiles[ii].walls.right = tileHeight - rightTileHeight;
       } else if ((tileHeight < rightTileHeight)) {
-        drawInfos[ii + 1].walls.left = rightTileHeight - tileHeight;
+        tiles[ii + 1].walls.left = rightTileHeight - tileHeight;
       }
     }
     // up check
     if (y < (topMostRow)) {
-      var aboveTileHeight = drawInfos[ii + size].z;
+      var aboveTileHeight = tiles[ii + size].z;
       if (tileHeight > aboveTileHeight) {
-        drawInfos[ii].walls.top = tileHeight - aboveTileHeight;
+        tiles[ii].walls.top = tileHeight - aboveTileHeight;
       } else if ((tileHeight < aboveTileHeight)) {
-        drawInfos[ii + size].walls.bottom = aboveTileHeight - tileHeight;
+        tiles[ii + size].walls.bottom = aboveTileHeight - tileHeight;
       }
     }
   }
 
-  // add walls to drawInfos
+  // create walls array
   for (let jj = 0; jj < size; ++jj) {
     for (let ii = 0; ii < size; ++ii) {
       const x = initX + ii * xStep;
       const y = initY + jj * xStep;
-      const drawInfo = drawInfos[jj*size + ii];
+      const drawInfo = tiles[jj*size + ii];
       const wallInfoTemplate = {
         x: x,
         y: y,
@@ -107,7 +108,7 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
         wallInfo.z -= drawInfo.walls.bottom/2;
         wallInfo.yScale *= drawInfo.walls.bottom/scale;
         wallInfo.xRot = PI/2;
-        drawInfos.push(wallInfo);
+        walls.push(wallInfo);
       }
       if (drawInfo.walls.top !== 0) {
         let wallInfo = Object.assign({},wallInfoTemplate);
@@ -115,7 +116,7 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
         wallInfo.z -= drawInfo.walls.top/2;
         wallInfo.yScale *= drawInfo.walls.top/scale;
         wallInfo.xRot = -PI/2;
-        drawInfos.push(wallInfo);
+        walls.push(wallInfo);
       }
       if (drawInfo.walls.left !== 0) {
         let wallInfo = Object.assign({},wallInfoTemplate);
@@ -123,7 +124,7 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
         wallInfo.z -= drawInfo.walls.left/2;
         wallInfo.xScale *= drawInfo.walls.left/scale;
         wallInfo.yRot = -PI/2;
-        drawInfos.push(wallInfo);
+        walls.push(wallInfo);
       }
       if (drawInfo.walls.right !== 0) {
         let wallInfo = Object.assign({},wallInfoTemplate);
@@ -131,11 +132,17 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
         wallInfo.z -= drawInfo.walls.right/2;
         wallInfo.xScale *= drawInfo.walls.right/scale;
         wallInfo.yRot = PI/2;
-        drawInfos.push(wallInfo);
+        walls.push(wallInfo);
       }
     }
   }
-  return drawInfos;
+
+  // return walls;
+  return {
+    all: tiles.concat(walls),
+    tiles: tiles,
+    walls: walls,
+  }
 }
 
 
