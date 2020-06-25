@@ -19,11 +19,11 @@ var PI = Math.PI;
 var CAMERA_ANGLE = -PI/3;
 var CAMERA_RADIUS = 250;
 var CAMERA_TILT = 3*PI/8;
-var CAMERA_X = X_NUMBER * SCALE / 2;
-var CAMERA_Y = X_NUMBER * SCALE / 2;
+var CAMERA_X = 5*X_NUMBER * SCALE / 2;
+var CAMERA_Y = 5*X_NUMBER * SCALE / 2;
 var CAMERA_Z = SCALE * 10;
 var TEST = 0;
-var CULL_FACE = false;
+var CULL_FACE = true;
 var FOV_ANGLE = degToRad(49);
 function radToDeg(r) {
   return r * 180 / Math.PI;

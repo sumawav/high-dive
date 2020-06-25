@@ -11,7 +11,6 @@ const meter = new FPSMeter({right: 0, bottom: 0, left: 'auto', top: 'auto'});
 
 const m4 = twgl.m4;
 const v3 = twgl.v3;
-
 twgl.setAttributePrefix('a_');
 
 function main() {
@@ -29,7 +28,7 @@ function main() {
 
   // lookup a few uniforms
   var textureLocation = gl.getUniformLocation(programInfo.program, "u_texture");
-  var reverseLightDirectionLocation = gl.getUniformLocation(programInfo.program, "u_reverseLightDirection");
+  // var reverseLightDirectionLocation = gl.getUniformLocation(programInfo.program, "u_reverseLightDirection");
 
   function createXYQuadVertices(size, xOffset, yOffset) {
     size = size || 2;
@@ -79,21 +78,23 @@ function main() {
     },
   };
 
-  var chunks = [];
-  chunks.push(createChunk(0, 0, X_NUMBER, SCALE, terrain, textureInfos));
-  chunks.push(createChunk(X_NUMBER*SCALE, 0, X_NUMBER, SCALE, terrain, textureInfos));
-  chunks.push(createChunk(0, X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
-  chunks.push(createChunk(X_NUMBER*SCALE, X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
-  chunks.push(createChunk(X_NUMBER*SCALE, 2*X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
-  chunks.push(createChunk(2*X_NUMBER*SCALE, X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
-  chunks.push(createChunk(2*X_NUMBER*SCALE, 2*X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
+  let chunks = [];
 
-  let allArrays = [];
-  let tileArrays = [];
-  let wallArrays = [];
+  for (let ii = 0; ii < 10; ++ii) {
+    for (let jj = 0; jj < 10; ++jj) {
+      chunks.push(createChunk(ii*X_NUMBER*SCALE, jj*X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
+    }
+  }
+
+  // let allArrays = [];
+  let allBuffers = [];
 
   // make an array of all arrays
   chunks.forEach(function(chunk){
+
+    let tileArrays = [];
+    let wallArrays = [];
+
     chunk.tiles.forEach(function(tile) {
       let translation = [tile.x, tile.y, tile.z];
       let scale = [tile.xScale, tile.yScale, tile.zScale];
@@ -146,23 +147,21 @@ function main() {
       wallArrays.push(arrays);
     });
 
+    let combinedTileArrays = twgl.primitives.concatVertices(tileArrays);
+    let combinedWallArrays = twgl.primitives.concatVertices(wallArrays);
+
+    const tilesBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedTileArrays);
+    const wallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWallArrays);
+
+    allBuffers.push({
+      buffer: tilesBufferInfo,
+      texture: textureInfos.grass.texture,
+    });
+    allBuffers.push({
+      buffer: wallsBufferInfo,
+      texture: textureInfos.dirt.texture,
+    });
   });
-
-  allArrays = tileArrays.concat(wallArrays);
-  
-
-  console.log(allArrays);
-  // const combinedArrays = twgl.primitives.concatVertices(allArrays);
-  const combinedTileArrays = twgl.primitives.concatVertices(tileArrays);
-  const combinedWallArrays = twgl.primitives.concatVertices(wallArrays);
-  console.log(combinedTileArrays);
-  // const chunksBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedArrays);
-  const tilesBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedTileArrays);
-  const wallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWallArrays);
-  console.log(tilesBufferInfo);
-
-
-
 
   function update(deltaTime) {}
 
@@ -192,37 +191,22 @@ function main() {
 
     gl.useProgram(programInfo.program);
 
-    gl.bindTexture(gl.TEXTURE_2D, textureInfos.grass.texture);
-    twgl.setBuffersAndAttributes(gl, programInfo, tilesBufferInfo);
-
-    var texMatrix = m4.identity(); // not actually needed
-
-    gl.uniform1i(textureLocation, 0);
-
-    twgl.setUniforms(programInfo, {
-      u_viewProjection: viewProjectionMatrix,
-      u_textureMatrix: texMatrix,
+    allBuffers.forEach(function(item){
+      gl.bindTexture(gl.TEXTURE_2D, item.texture);
+      twgl.setBuffersAndAttributes(gl, programInfo, item.buffer);
+  
+      var texMatrix = m4.identity(); // not actually needed
+  
+      gl.uniform1i(textureLocation, 0);
+  
+      twgl.setUniforms(programInfo, {
+        u_viewProjection: viewProjectionMatrix,
+        u_textureMatrix: texMatrix,
+      });
+  
+      twgl.drawBufferInfo(gl, item.buffer);
     });
-
-    twgl.drawBufferInfo(gl, tilesBufferInfo);
-
-    // ---
-
-    gl.bindTexture(gl.TEXTURE_2D, textureInfos.dirt.texture);
-    twgl.setBuffersAndAttributes(gl, programInfo, wallsBufferInfo);
-
-    var texMatrix = m4.identity(); // not actually needed
-
-    gl.uniform1i(textureLocation, 0);
-
-    twgl.setUniforms(programInfo, {
-      u_viewProjection: viewProjectionMatrix,
-      u_textureMatrix: texMatrix,
-    });
-
-    twgl.drawBufferInfo(gl, wallsBufferInfo);
   }
-
 
   var then = 0;
   function render(time) {
@@ -240,6 +224,5 @@ function main() {
   }
   requestAnimationFrame(render);
 }
-
 
 main();
