@@ -82,14 +82,19 @@ function main() {
 
   for (let ii = 0; ii < 10; ++ii) {
     for (let jj = 0; jj < 10; ++jj) {
-      chunks.push(createChunk(ii*X_NUMBER*SCALE, jj*X_NUMBER*SCALE, X_NUMBER, SCALE, terrain, textureInfos));
+      chunks.push(createChunk(
+        ii*X_NUMBER*SCALE, 
+        jj*X_NUMBER*SCALE, 
+        X_NUMBER, 
+        SCALE, 
+        terrain[Math.floor(Math.random()*3)], 
+        textureInfos));
     }
   }
 
-  // let allArrays = [];
+  
+  // make buffers for all chunks
   let allBuffers = [];
-
-  // make an array of all arrays
   chunks.forEach(function(chunk){
 
     let tileArrays = [];
@@ -148,19 +153,20 @@ function main() {
     });
 
     let combinedTileArrays = twgl.primitives.concatVertices(tileArrays);
-    let combinedWallArrays = twgl.primitives.concatVertices(wallArrays);
-
     const tilesBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedTileArrays);
-    const wallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWallArrays);
-
     allBuffers.push({
       buffer: tilesBufferInfo,
       texture: textureInfos.grass.texture,
     });
-    allBuffers.push({
-      buffer: wallsBufferInfo,
-      texture: textureInfos.dirt.texture,
-    });
+    if (chunk.walls.length > 0){
+      let combinedWallArrays = twgl.primitives.concatVertices(wallArrays);
+      const wallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWallArrays);
+      allBuffers.push({
+        buffer: wallsBufferInfo,
+        texture: textureInfos.dirt.texture,
+      });
+    }
+
   });
 
   function update(deltaTime) {}

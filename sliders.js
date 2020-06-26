@@ -30,8 +30,8 @@ webglLessonsUI.setupSlider("#fieldofview", {
   webglLessonsUI.setupSlider("#cameraX", {
     value: CAMERA_X,
     slide: updateCameraX,
-    min: -400,
-    max: 400,
+    min: -2000,
+    max: 2000,
   });
   function updateCameraX(event, ui) {
     CAMERA_X = ui.value;
@@ -39,8 +39,8 @@ webglLessonsUI.setupSlider("#fieldofview", {
   webglLessonsUI.setupSlider("#cameraY", {
     value: CAMERA_Y,
     slide: updateCameraY,
-    min: -400,
-    max: 400,
+    min: -2000,
+    max: 2000,
   });
   function updateCameraY(event, ui) {
     CAMERA_Y = ui.value;
