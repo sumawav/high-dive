@@ -7,7 +7,7 @@ const capturer = new CCapture( {
   verbose: true
 } );
 
-const meter = new FPSMeter({right: 0, bottom: 0, left: 'auto', top: 'auto'});
+const meter = new FPSMeter();
 
 const m4 = twgl.m4;
 const v3 = twgl.v3;
@@ -80,17 +80,43 @@ function main() {
 
   let chunks = [];
 
-  for (let ii = 0; ii < 10; ++ii) {
-    for (let jj = 0; jj < 10; ++jj) {
+  for (let ii = 0; ii < CHUNK_N; ++ii) {
+    for (let jj = 0; jj < CHUNK_N; ++jj) {
+      let terrain;
+      if (Math.floor(Math.random()*9) === 5) {
+        if (Math.floor(Math.random()*2) === 0) {
+          terrain = getTerrainA();
+        } else {
+          terrain = getTerrainB();
+        }
+      } else {
+        terrain = getEmptyTerrain();
+      }
       chunks.push(createChunk(
         ii*X_NUMBER*SCALE, 
-        jj*X_NUMBER*SCALE, 
+        jj*Y_NUMBER*SCALE, 
         X_NUMBER, 
         SCALE, 
-        terrain[Math.floor(Math.random()*3)], 
-        textureInfos));
+        terrain, 
+        textureInfos
+      ));
     }
   }
+
+  let createWorld = function() {
+    let chunks = [];
+    let atlas = [];
+
+    const addChunk = (chunk) => {
+      chunks.push(chunk);
+    }
+
+    return {
+      chunks: chunks,
+      atlas: atlas,
+      addChunk: addChunk,
+    }
+  };
 
   
   // make buffers for all chunks
@@ -100,7 +126,7 @@ function main() {
     let tileArrays = [];
     let wallArrays = [];
 
-    chunk.tiles.forEach(function(tile) {
+    const doThings = function(tile) {
       let translation = [tile.x, tile.y, tile.z];
       let scale = [tile.xScale, tile.yScale, tile.zScale];
       let arrays = createXYQuadVertices(1);
@@ -123,33 +149,15 @@ function main() {
         arrays.texcoord.data[(2 * ii) + 1] *= tile.yScale / SCALE;
       }
       arrays.world.data = worldMatrixArray
-      tileArrays.push(arrays);
+      return arrays;
+    }
+
+    chunk.tiles.forEach(function(tiles){
+      tileArrays.push(doThings(tiles));
     });
 
-    chunk.walls.forEach(function(wall) {
-      let translation = [wall.x, wall.y, wall.z];
-      let scale = [wall.xScale, wall.yScale, wall.zScale];
-      let arrays = createXYQuadVertices(1);
-      let worldMatrix = m4.identity();
-      let worldMatrixArray = twgl.primitives.createAugmentedTypedArray(16, 4);
-      const quad_vertices = 4;
-
-      // pre-calculate world matrix for every quad in chunk 
-      worldMatrix = m4.translate(worldMatrix, translation);
-      worldMatrix = m4.rotateX(worldMatrix, wall.xRot);
-      worldMatrix = m4.rotateY(worldMatrix, wall.yRot);
-      worldMatrix = m4.rotateZ(worldMatrix, wall.zRot);
-      worldMatrix = m4.scale(worldMatrix, scale);
-
-      for (let ii = 0; ii  < quad_vertices; ++ii) {
-        worldMatrixArray.push(worldMatrix);
-
-        // scale texcoordinates
-        arrays.texcoord.data[2 * ii] *= wall.xScale / SCALE;
-        arrays.texcoord.data[(2 * ii) + 1] *= wall.yScale / SCALE;
-      }
-      arrays.world.data = worldMatrixArray
-      wallArrays.push(arrays);
+    chunk.walls.forEach(function(tiles){
+      wallArrays.push(doThings(tiles));
     });
 
     let combinedTileArrays = twgl.primitives.concatVertices(tileArrays);
@@ -166,15 +174,47 @@ function main() {
         texture: textureInfos.dirt.texture,
       });
     }
-
   });
 
-  function update(deltaTime) {}
+  function update(deltaTime) {
+    let cameraSpeed = shiftPressed ? 0.1*SPEED : SPEED;
+    let moveSpeed = cameraSpeed * SCALE;
+    if (rightPressed){
+      CAMERA_X += moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE);
+      CAMERA_Y += moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE);
+    }
+    if (leftPressed){
+      CAMERA_X -= moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE);
+      CAMERA_Y -= moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE);
+    }
+    if (upPressed){
+      CAMERA_Y += moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE);
+      CAMERA_X -= moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE);
+    }
+    if (downPressed){
+      CAMERA_Y -= moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE);
+      CAMERA_X += moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE);
+    }
+    if (leftRotate){
+      CAMERA_ANGLE += deltaTime * cameraSpeed/SPEED;
+    }
+    if (rightRotate){
+      CAMERA_ANGLE -= deltaTime * cameraSpeed/SPEED;
+    }
+    if (risePressed){
+      CAMERA_Z += deltaTime * moveSpeed;
+    }
+    if (sinkPressed){
+      CAMERA_Z -= deltaTime * moveSpeed;
+    }
+    
+  }
 
   function draw() {
     twgl.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    // gl.clearColor(104/255, 134/255, 197/255, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
     // gl.depthMask(true);
     // gl.clearDepth(1);
     gl.clear(gl.COLOR_BUFFER_BIT);

@@ -27,30 +27,30 @@ webglLessonsUI.setupSlider("#fieldofview", {
   function updateCameraTilt(event, ui) {
     CAMERA_TILT = degToRad(ui.value);
   }
-  webglLessonsUI.setupSlider("#cameraX", {
-    value: CAMERA_X,
-    slide: updateCameraX,
-    min: -2000,
-    max: 2000,
-  });
-  function updateCameraX(event, ui) {
-    CAMERA_X = ui.value;
-  }
-  webglLessonsUI.setupSlider("#cameraY", {
-    value: CAMERA_Y,
-    slide: updateCameraY,
-    min: -2000,
-    max: 2000,
-  });
-  function updateCameraY(event, ui) {
-    CAMERA_Y = ui.value;
-  }
-  webglLessonsUI.setupSlider("#cameraZ", {
-    value: CAMERA_Z,
-    slide: updateCameraZ,
-    min: -400,
-    max: 400,
-  });
+  // webglLessonsUI.setupSlider("#cameraX", {
+  //   value: CAMERA_X,
+  //   slide: updateCameraX,
+  //   min: -2000,
+  //   max: 2000,
+  // });
+  // function updateCameraX(event, ui) {
+  //   CAMERA_X = ui.value;
+  // }
+  // webglLessonsUI.setupSlider("#cameraY", {
+  //   value: CAMERA_Y,
+  //   slide: updateCameraY,
+  //   min: -2000,
+  //   max: 2000,
+  // });
+  // function updateCameraY(event, ui) {
+  //   CAMERA_Y = ui.value;
+  // }
+  // webglLessonsUI.setupSlider("#cameraZ", {
+  //   value: CAMERA_Z,
+  //   slide: updateCameraZ,
+  //   min: -400,
+  //   max: 400,
+  // });
   function updateCameraZ(event, ui) {
     CAMERA_Z = ui.value;
   }

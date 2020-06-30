@@ -122,7 +122,8 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
         let wallInfo = Object.assign({},wallInfoTemplate);
         wallInfo.x -= apothem;
         wallInfo.z -= drawInfo.walls.left/2;
-        wallInfo.xScale *= drawInfo.walls.left/scale;
+        wallInfo.zRot = -PI/2;
+        wallInfo.yScale *= drawInfo.walls.left/scale;
         wallInfo.yRot = -PI/2;
         walls.push(wallInfo);
       }
@@ -130,7 +131,8 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
         let wallInfo = Object.assign({},wallInfoTemplate);
         wallInfo.x += apothem;
         wallInfo.z -= drawInfo.walls.right/2;
-        wallInfo.xScale *= drawInfo.walls.right/scale;
+        wallInfo.zRot = PI/2;
+        wallInfo.yScale *= drawInfo.walls.right/scale;
         wallInfo.yRot = PI/2;
         walls.push(wallInfo);
       }
@@ -139,6 +141,8 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
 
   // return walls;
   return {
+    x: initX,
+    y: initY,
     all: tiles.concat(walls),
     tiles: tiles,
     walls: walls,
