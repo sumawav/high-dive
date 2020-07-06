@@ -1,14 +1,16 @@
-function createChunk(initX, initY, size, scale, terrain, textureInfos){
+function createChunk(initX, initY, size, scale, terrain){
 
   let tiles = [];
   let walls = [];
+  let waters = [];
+  let tilesNotWaters = [];
   var apothem = 0.5 * scale; // distance from center of regular polygon to midpoint of side
   var xStep = 2 * apothem;
 
   for (var jj = 0; jj < size; ++jj) {
     for (var ii = 0; ii < size; ++ii) {
-      var x = initX + ii * xStep;
-      var y = initY + jj * xStep;
+      var x = 0*initX + ii * xStep;
+      var y = 0*initY + jj * xStep;
       var tile = {
         x: x,
         y: y,
@@ -19,11 +21,9 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
         xScale: scale,
         yScale: scale,
         zScale: 1,
-        textureInfo: textureInfos["grass"],
         xRot: 0,
         yRot: 0,
         zRot: 0,
-        // apothem: apothem,
         walls: {
           top: 0,
           bottom: 0,
@@ -31,6 +31,11 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
           right: 0,
         }
       };
+      if (tile.z === 0){
+        waters.push(tile);
+      } else {
+        tilesNotWaters.push(tile);
+      }
       tiles.push(tile);
     }
   }
@@ -81,8 +86,8 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
   // create walls array
   for (let jj = 0; jj < size; ++jj) {
     for (let ii = 0; ii < size; ++ii) {
-      const x = initX + ii * xStep;
-      const y = initY + jj * xStep;
+      const x = 0*initX + ii * xStep;
+      const y = 0*initY + jj * xStep;
       const drawInfo = tiles[jj*size + ii];
       const wallInfoTemplate = {
         x: x,
@@ -94,14 +99,12 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
         xScale: scale,
         yScale: scale,
         zScale: 1,
-        textureInfo: textureInfos["dirt"],
         xRot: 0,
         yRot: 0,
         zRot: 0,
         walls: null,
       };
       
-
       if (drawInfo.walls.bottom !== 0) {
         let wallInfo = Object.assign({},wallInfoTemplate);
         wallInfo.y -= apothem;
@@ -141,11 +144,11 @@ function createChunk(initX, initY, size, scale, terrain, textureInfos){
 
   // return walls;
   return {
-    x: initX,
-    y: initY,
     all: tiles.concat(walls),
     tiles: tiles,
     walls: walls,
+    waters: waters,
+    tilesNotWaters: tilesNotWaters,
   }
 }
 

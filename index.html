@@ -43,20 +43,22 @@ void main() {
   attribute vec4 a_position;
   attribute vec2 a_texcoord;
   attribute vec3 a_normal;
-  attribute mat4 a_world;
+  attribute mat4 a_chunk;
   
   uniform mat4 u_viewProjection;
   uniform mat4 u_textureMatrix;
+  uniform vec3 u_worldPosition;
   
   varying vec2 v_texcoord;
   varying vec3 v_normal;
   
   void main() {
-    mat4 wvp = u_viewProjection * a_world;
-    gl_Position = wvp * a_position;
+    vec4 cp = a_chunk * a_position;
+    vec4 wcp = cp + vec4(u_worldPosition, 0);
+    gl_Position = u_viewProjection * wcp;
     v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
   
-    v_normal = mat3(a_world) * a_normal;
+    // v_normal = mat3(a_world) * a_normal;
   }
 </script>
 <!-- fragment shader -->
