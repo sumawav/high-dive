@@ -78,6 +78,11 @@ function main() {
       texture: twgl.createTexture(gl, {src: 'texture_00.png'}),
       width: 16,
       height: 16,
+    },    
+    "water": {
+      texture: twgl.createTexture(gl, {src: 'texture_03.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
+      width: 16,
+      height: 16,
     },
   };
 
@@ -253,7 +258,7 @@ function main() {
       const watersBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterArrays);
       allBuffers.push({
         buffer: watersBufferInfo,
-        texture: textureInfos.tile.texture,
+        texture: textureInfos.water.texture,
         worldPosition: [X_NUMBER*SCALE*mapPiece.x, X_NUMBER*SCALE*mapPiece.y, 0],
       });
     }
