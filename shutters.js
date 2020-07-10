@@ -86,36 +86,12 @@ function main() {
     },
   };
 
-  // let chunks = [];
-
-  // for (let ii = 0; ii < CHUNK_N; ++ii) {
-  //   for (let jj = 0; jj < CHUNK_N; ++jj) {
-  //     let terrain;
-  //     // if (Math.floor(Math.random()*9) === 5) {
-  //     //   if (Math.floor(Math.random()*2) === 0) {
-  //     //     terrain = getTerrainA();
-  //     //   } else {
-  //     //     terrain = getTerrainB();
-  //     //   }
-  //     // } else {
-  //     //   terrain = getEmptyTerrain();
-  //     // }
-  //     terrain = getTerrainB();
-  //     chunks.push(createChunk(
-  //       0, 
-  //       0, 
-  //       X_NUMBER, 
-  //       SCALE, 
-  //       terrain, 
-  //       textureInfos
-  //     ));
-  //   }
-  // }
 
   let createWorld = function(n) {
     let chunks = [];
     let atlas = [];
     let N = n || 16;
+    let offset = [0, 0];
 
     const addAtlas = function(e) {
       atlas = e;
@@ -127,6 +103,11 @@ function main() {
 
     const addChunk = function(chunk){
       chunks.push(chunk);
+    }
+
+    const updateOffset = function(x,y){
+      offset[0] = x;
+      offset[1] = y;
     }
 
     const getMap = () => {
@@ -146,11 +127,14 @@ function main() {
       return worldMap;
     }
 
+    
+
     return {
       getAtlas: getAtlas,
       addAtlas: addAtlas,
       addChunk: addChunk,
       getMap: getMap,
+      updateOffset: updateOffset,
     }
   };
 
@@ -182,15 +166,13 @@ function main() {
     0,0,0,0,0,0,0,0,0,
   ]);
 
-  let testChunks = world.getMap();
+  let mapChunks = world.getMap();
 
-  console.log(testChunks);
+  console.log(mapChunks);
 
   // make buffers for all chunks
   let allBuffers = [];
-  testChunks.forEach(function(mapPiece){
-  // chunks.forEach(function(chunk){
-
+  mapChunks.forEach(function(mapPiece){
     let tileArrays = [];
     let wallArrays = [];
     let waterArrays = [];
@@ -233,8 +215,6 @@ function main() {
       waterArrays.push(doThings(tiles));
     });
 
-    // if (tileArrays.length === 0)
-    //   return;
     if (mapPiece.chunk.tilesNotWaters.length > 0){
       let combinedTileArrays = twgl.primitives.concatVertices(tileArrays);
       const tilesBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedTileArrays);
@@ -295,7 +275,10 @@ function main() {
     if (sinkPressed){
       CAMERA_Z -= deltaTime * moveSpeed;
     }
-    
+    let newOffsetX = Math.floor(CAMERA_X / (X_NUMBER * SCALE));
+    let newOffsetY = Math.floor(CAMERA_Y / (Y_NUMBER * SCALE));
+    console.log(newOffsetX, newOffsetY);
+    world.updateOffset(newOffsetX, newOffsetY);
   }
 
   function draw() {
@@ -327,6 +310,8 @@ function main() {
 
     let draw_calls = 0;
     
+    // console.log("all buffers length: ", allBuffers.length);
+
     allBuffers.forEach(function(item){
       gl.bindTexture(gl.TEXTURE_2D, item.texture);
       twgl.setBuffersAndAttributes(gl, programInfo, item.buffer);
