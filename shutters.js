@@ -77,38 +77,40 @@ function main() {
     }
 
     const updateOffset = function(x,y){
-      const newOffsetX = x%N;
-      const newOffsetY = y%N;
-      if (newOffsetX !== offset[0]){
-        console.log("MOVED CHUNK X");
-        console.log(newOffsetX, newOffsetY);
+      const newOffsetX = x;
+      const newOffsetY = y;
+      if (newOffsetX > offset[0]){
+        console.log("X+");
+      } else if (newOffsetX < offset[0]){
+        console.log("X-");
       }
-      if (newOffsetY !== offset[1]){
-        console.log("MOVED CHUNK Y");
-        console.log(newOffsetX, newOffsetY);
+      if (newOffsetY > offset[1]){
+        console.log("Y+");
+      } else if (newOffsetY < offset[1]){
+        console.log("Y-");
       }
       offset[0] = newOffsetX;
       offset[1] = newOffsetY;
     }
 
     const getMap = () => {
-
       let worldMap = [];
-
       for(let ii = 0; ii < atlas.length; ++ii) {
         let x = ii % N;
         let y = Math.floor(ii / N);
-        // chunks[atlas[ii]][0].worldPosition = [x, y, 0];
-        worldMap.push({
-          chunk: chunks[atlas[ii]],
-          worldPosition: [x,y],
+
+        let bufferArray = chunks[atlas[ii]];
+
+        bufferArray.forEach(function(item){
+          worldMap.push({
+            buffer: item.buffer,
+            texture: item.texture,
+            worldPosition: [x * X_NUMBER * SCALE, y * X_NUMBER * SCALE, 0],
+          });
         });
       }
-
       return worldMap;
     }
-
-    
 
     return {
       getAtlas: getAtlas,
@@ -136,25 +138,33 @@ function main() {
     getTerrainB(),
     textureInfos
   ));
+  world.addChunk(createChunk(
+    0, 
+    0, 
+    X_NUMBER, 
+    SCALE, 
+    getTerrainA(),
+    textureInfos
+  ));
   // world.addChunk(chunks[1]);
   world.addAtlas([
     0,0,0,0,0,0,0,0,0,
-    0,1,0,0,0,0,0,1,0,
+    0,2,0,0,0,0,0,2,0,
     0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,
     0,0,0,0,1,0,0,0,0,
     0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,
-    0,1,0,0,0,0,0,1,0,
+    0,2,0,0,0,0,0,2,0,
     0,0,0,0,0,0,0,0,0,
   ]);
 
   let mapChunks = world.getMap();
 
-  console.log(mapChunks);
-
   // make buffers for all chunks
-  let allBuffers = [];
+  let allBuffers = mapChunks;
+
+  console.log(allBuffers);
 
   allBuffers = mapChunks;
 
