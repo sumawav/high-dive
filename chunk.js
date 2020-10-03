@@ -1,4 +1,4 @@
-function createChunk(initX, initY, size, scale, terrain){
+function createChunk(initX, initY, size, scale, terrain, textureInfos){
 
   let tiles = [];
   let walls = [];
@@ -142,16 +142,122 @@ function createChunk(initX, initY, size, scale, terrain){
     }
   }
 
-  // return walls;
-  return {
-    all: tiles.concat(walls),
-    tiles: tiles,
-    walls: walls,
-    waters: waters,
-    tilesNotWaters: tilesNotWaters,
-  }
-}
+  let tileArrays = [];
+  let wallArrays = [];
+  let waterArrays = [];
 
+  function createXYQuadVertices(size, xOffset, yOffset) {
+    size = size || 2;
+    xOffset = xOffset || 0;
+    yOffset = yOffset || 0;
+    size *= 0.5;
+    return {
+      position: {
+        numComponents: 2,
+        data: [
+          xOffset + -1 * size, yOffset + -1 * size,
+          xOffset + 1 * size, yOffset + -1 * size,
+          xOffset + -1 * size, yOffset + 1 * size,
+          xOffset + 1 * size, yOffset + 1 * size,
+        ]
+      },
+      normal: {
+        numComponents: 3,
+        data: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]
+      },
+      texcoord: {
+        numComponents: 2,
+        data: [
+          0, 0, 1, 0, 0, 1, 1, 1
+        ],
+      },
+      indices: [0, 1, 2, 2, 1, 3],
+      chunk: {
+        numComponents: 16,
+        data: [],
+      },
+    };
+  }
+
+  const doThings = function(tile) {
+    let translation = [tile.x, tile.y, tile.z];
+    let scale = [tile.xScale, tile.yScale, tile.zScale];
+    let arrays = createXYQuadVertices(1);
+    let chunkMatrix = m4.identity();
+    let chunkMatrixArray = twgl.primitives.createAugmentedTypedArray(16, 4);
+    const quad_vertices = 4;
+
+    // pre-calculate world matrix for every quad in chunk 
+    chunkMatrix = m4.translate(chunkMatrix, translation);
+    chunkMatrix = m4.rotateX(chunkMatrix, tile.xRot);
+    chunkMatrix = m4.rotateY(chunkMatrix, tile.yRot);
+    chunkMatrix = m4.rotateZ(chunkMatrix, tile.zRot);
+    chunkMatrix = m4.scale(chunkMatrix, scale);
+
+    for (let ii = 0; ii  < quad_vertices; ++ii) {
+      chunkMatrixArray.push(chunkMatrix);
+
+      // scale texcoordinates
+      arrays.texcoord.data[2 * ii] *= tile.xScale / SCALE;
+      arrays.texcoord.data[(2 * ii) + 1] *= tile.yScale / SCALE;
+    }
+    arrays.chunk.data = chunkMatrixArray
+    return arrays;
+  }
+
+  tilesNotWaters.forEach(function(tiles){
+    tileArrays.push(doThings(tiles));
+  });
+
+  walls.forEach(function(tiles){
+    wallArrays.push(doThings(tiles));
+  });
+
+  waters.forEach(function(tiles){
+    waterArrays.push(doThings(tiles));
+  });
+
+  let buffers = [];
+
+  if (tileArrays.length > 0){
+    let combinedTileArrays = twgl.primitives.concatVertices(tileArrays);
+    const tilesBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedTileArrays);
+    buffers.push({
+      buffer: tilesBufferInfo,
+      texture: textureInfos.grass.texture,
+      // worldPosition: [X_NUMBER*SCALE*mapPiece.x, X_NUMBER*SCALE*mapPiece.y, 0],
+    });
+  }
+  if (wallArrays.length > 0){
+    let combinedWallArrays = twgl.primitives.concatVertices(wallArrays);
+    const wallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWallArrays);
+    buffers.push({
+      buffer: wallsBufferInfo,
+      texture: textureInfos.dirt.texture,
+      // worldPosition: [X_NUMBER*SCALE*mapPiece.x, X_NUMBER*SCALE*mapPiece.y, 0],
+    });
+  }
+  if (waterArrays.length > 0) {
+    let combinedWaterArrays = twgl.primitives.concatVertices(waterArrays);
+    const watersBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterArrays);
+    buffers.push({
+      buffer: watersBufferInfo,
+      texture: textureInfos.water.texture,
+      // worldPosition: [X_NUMBER*SCALE*mapPiece.x, X_NUMBER*SCALE*mapPiece.y, 0],
+    });
+  }
+
+  // return walls;
+  // return {
+  //   all: tiles.concat(walls),
+  //   tiles: tiles,
+  //   walls: walls,
+  //   waters: waters,
+  //   tilesNotWaters: tilesNotWaters,
+  //   buffers: buffers,
+  // }
+  return buffers;
+}
 
 
 // let ignoreMe = `data:image/png;

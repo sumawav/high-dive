@@ -13,9 +13,11 @@ const m4 = twgl.m4;
 const v3 = twgl.v3;
 twgl.setAttributePrefix('a_');
 
+const canvas = document.getElementById("canvas");
+const gl = canvas.getContext("webgl");
+
+
 function main() {
-  const canvas = document.getElementById("canvas");
-  const gl = canvas.getContext("webgl");
   if (!gl) {
     return;
   }  
@@ -30,38 +32,7 @@ function main() {
   var textureLocation = gl.getUniformLocation(programInfo.program, "u_texture");
   // var reverseLightDirectionLocation = gl.getUniformLocation(programInfo.program, "u_reverseLightDirection");
 
-  function createXYQuadVertices(size, xOffset, yOffset) {
-    size = size || 2;
-    xOffset = xOffset || 0;
-    yOffset = yOffset || 0;
-    size *= 0.5;
-    return {
-      position: {
-        numComponents: 2,
-        data: [
-          xOffset + -1 * size, yOffset + -1 * size,
-          xOffset + 1 * size, yOffset + -1 * size,
-          xOffset + -1 * size, yOffset + 1 * size,
-          xOffset + 1 * size, yOffset + 1 * size,
-        ]
-      },
-      normal: {
-        numComponents: 3,
-        data: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]
-      },
-      texcoord: {
-        numComponents: 2,
-        data: [
-          0, 0, 1, 0, 0, 1, 1, 1
-        ],
-      },
-      indices: [0, 1, 2, 2, 1, 3],
-      chunk: {
-        numComponents: 16,
-        data: [],
-      },
-    };
-  }
+
 
   var textureInfos = {
     "grass": {
@@ -106,8 +77,18 @@ function main() {
     }
 
     const updateOffset = function(x,y){
-      offset[0] = x;
-      offset[1] = y;
+      const newOffsetX = x%N;
+      const newOffsetY = y%N;
+      if (newOffsetX !== offset[0]){
+        console.log("MOVED CHUNK X");
+        console.log(newOffsetX, newOffsetY);
+      }
+      if (newOffsetY !== offset[1]){
+        console.log("MOVED CHUNK Y");
+        console.log(newOffsetX, newOffsetY);
+      }
+      offset[0] = newOffsetX;
+      offset[1] = newOffsetY;
     }
 
     const getMap = () => {
@@ -117,11 +98,11 @@ function main() {
       for(let ii = 0; ii < atlas.length; ++ii) {
         let x = ii % N;
         let y = Math.floor(ii / N);
+        // chunks[atlas[ii]][0].worldPosition = [x, y, 0];
         worldMap.push({
           chunk: chunks[atlas[ii]],
-          x: x,
-          y: y,
-        })
+          worldPosition: [x,y],
+        });
       }
 
       return worldMap;
@@ -144,14 +125,16 @@ function main() {
     0, 
     X_NUMBER, 
     SCALE, 
-    getEmptyTerrain()
+    getEmptyTerrain(),
+    textureInfos
   ));
   world.addChunk(createChunk(
     0, 
     0, 
     X_NUMBER, 
     SCALE, 
-    getTerrainB()
+    getTerrainB(),
+    textureInfos
   ));
   // world.addChunk(chunks[1]);
   world.addAtlas([
@@ -172,77 +155,8 @@ function main() {
 
   // make buffers for all chunks
   let allBuffers = [];
-  mapChunks.forEach(function(mapPiece){
-    let tileArrays = [];
-    let wallArrays = [];
-    let waterArrays = [];
 
-    const doThings = function(tile) {
-      let translation = [tile.x, tile.y, tile.z];
-      let scale = [tile.xScale, tile.yScale, tile.zScale];
-      let arrays = createXYQuadVertices(1);
-      let chunkMatrix = m4.identity();
-      let chunkMatrixArray = twgl.primitives.createAugmentedTypedArray(16, 4);
-      const quad_vertices = 4;
-
-      // pre-calculate world matrix for every quad in chunk 
-      chunkMatrix = m4.translate(chunkMatrix, translation);
-      chunkMatrix = m4.rotateX(chunkMatrix, tile.xRot);
-      chunkMatrix = m4.rotateY(chunkMatrix, tile.yRot);
-      chunkMatrix = m4.rotateZ(chunkMatrix, tile.zRot);
-      chunkMatrix = m4.scale(chunkMatrix, scale);
-
-      for (let ii = 0; ii  < quad_vertices; ++ii) {
-        chunkMatrixArray.push(chunkMatrix);
-
-        // scale texcoordinates
-        arrays.texcoord.data[2 * ii] *= tile.xScale / SCALE;
-        arrays.texcoord.data[(2 * ii) + 1] *= tile.yScale / SCALE;
-      }
-      arrays.chunk.data = chunkMatrixArray
-      return arrays;
-    }
-
-    mapPiece.chunk.tilesNotWaters.forEach(function(tiles){
-      tileArrays.push(doThings(tiles));
-    });
-
-    mapPiece.chunk.walls.forEach(function(tiles){
-      wallArrays.push(doThings(tiles));
-    });
-
-    mapPiece.chunk.waters.forEach(function(tiles){
-      waterArrays.push(doThings(tiles));
-    });
-
-    if (mapPiece.chunk.tilesNotWaters.length > 0){
-      let combinedTileArrays = twgl.primitives.concatVertices(tileArrays);
-      const tilesBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedTileArrays);
-      allBuffers.push({
-        buffer: tilesBufferInfo,
-        texture: textureInfos.grass.texture,
-        worldPosition: [X_NUMBER*SCALE*mapPiece.x, X_NUMBER*SCALE*mapPiece.y, 0],
-      });
-    }
-    if (mapPiece.chunk.walls.length > 0){
-      let combinedWallArrays = twgl.primitives.concatVertices(wallArrays);
-      const wallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWallArrays);
-      allBuffers.push({
-        buffer: wallsBufferInfo,
-        texture: textureInfos.dirt.texture,
-        worldPosition: [X_NUMBER*SCALE*mapPiece.x, X_NUMBER*SCALE*mapPiece.y, 0],
-      });
-    }
-    if (mapPiece.chunk.waters.length > 0) {
-      let combinedWaterArrays = twgl.primitives.concatVertices(waterArrays);
-      const watersBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterArrays);
-      allBuffers.push({
-        buffer: watersBufferInfo,
-        texture: textureInfos.water.texture,
-        worldPosition: [X_NUMBER*SCALE*mapPiece.x, X_NUMBER*SCALE*mapPiece.y, 0],
-      });
-    }
-  });
+  allBuffers = mapChunks;
 
   function update(deltaTime) {
     let cameraSpeed = shiftPressed ? 0.1*SPEED : SPEED;
@@ -277,7 +191,7 @@ function main() {
     }
     let newOffsetX = Math.floor(CAMERA_X / (X_NUMBER * SCALE));
     let newOffsetY = Math.floor(CAMERA_Y / (Y_NUMBER * SCALE));
-    console.log(newOffsetX, newOffsetY);
+    // console.log(newOffsetX, newOffsetY);
     world.updateOffset(newOffsetX, newOffsetY);
   }
 
