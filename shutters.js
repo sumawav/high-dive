@@ -62,7 +62,16 @@ function main() {
     let chunks = [];
     let atlas = [];
     let N = n || 16;
-    let offset = [0, 0];
+    let oldX;
+    let oldY;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    let cb;
+
+    const setcb = function(cbin) {
+      cb = cbin;
+    }
 
     const addAtlas = function(e) {
       atlas = e;
@@ -77,20 +86,32 @@ function main() {
     }
 
     const updateOffset = function(x,y){
-      const newOffsetX = x;
-      const newOffsetY = y;
-      if (newOffsetX > offset[0]){
+      const newX = x;
+      const newY = y;
+      if (oldX === null)
+        oldX = newX;
+      if (oldY === null)
+        oldY = newY;
+      if (newX > oldX){
         console.log("X+");
-      } else if (newOffsetX < offset[0]){
+        offsetX++;
+        cb();
+      } else if (newX < oldX){
         console.log("X-");
+        offsetX--;
+        cb();
       }
-      if (newOffsetY > offset[1]){
+      if (newY > oldY){
         console.log("Y+");
-      } else if (newOffsetY < offset[1]){
+        offsetY++;
+        cb();
+      } else if (newY < oldY){
         console.log("Y-");
+        offsetY--;
+        cb();
       }
-      offset[0] = newOffsetX;
-      offset[1] = newOffsetY;
+      oldX = newX;
+      oldY = newY;
     }
 
     const getMap = () => {
@@ -99,13 +120,38 @@ function main() {
         let x = ii % N;
         let y = Math.floor(ii / N);
 
+        let rolloverX = Math.floor(Math.abs(offsetX) / N);
+        let rolloverY = Math.floor(Math.abs(offsetY) / N);
+        let actual_offset_x = offsetX % N;
+        let actual_offset_y = offsetY % N;
+        let new_x;
+        let new_y;
+
+        let neg_actual_offset_x = N + actual_offset_x - 1;
+        let neg_actual_offset_y = N + actual_offset_y - 1;
+
+        if (offsetX >= 0){
+          new_x = x + (x < actual_offset_x ? N : 0);
+          new_x += (rolloverX * N);
+        } else if (offsetX < 0){
+          new_x = x - (x > neg_actual_offset_x ? N : 0);  
+          new_x -= (rolloverX * N);
+        }
+        if (offsetY >= 0){
+          new_y = y + (y < actual_offset_y ? N : 0);
+          new_y += (rolloverY * N);
+        } else if (offsetY < 0) {
+          new_y = y - (y > neg_actual_offset_y ? N : 0);  
+          new_y -= (rolloverY * N);
+        }
+
         let bufferArray = chunks[atlas[ii]];
 
         bufferArray.forEach(function(item){
           worldMap.push({
             buffer: item.buffer,
             texture: item.texture,
-            worldPosition: [x * X_NUMBER * SCALE, y * X_NUMBER * SCALE, 0],
+            worldPosition: [new_x * X_NUMBER * SCALE, new_y * X_NUMBER * SCALE, 0],
           });
         });
       }
@@ -118,6 +164,7 @@ function main() {
       addChunk: addChunk,
       getMap: getMap,
       updateOffset: updateOffset,
+      setcb: setcb,
     }
   };
 
@@ -146,18 +193,37 @@ function main() {
     getTerrainA(),
     textureInfos
   ));
-  // world.addChunk(chunks[1]);
+  world.addChunk(createChunk(
+    0, 
+    0, 
+    X_NUMBER, 
+    SCALE, 
+    getTerrainC(),
+    textureInfos
+  ));
   world.addAtlas([
-    0,0,0,0,0,0,0,0,0,
-    0,2,0,0,0,0,0,2,0,
-    0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,
-    0,0,0,0,1,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,
-    0,2,0,0,0,0,0,2,0,
-    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,1,0,0,2,0,0,0,0,0,1,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,3,0,0,0,0,0,0,0,0,3,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,2,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,1,0,0,2,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,3,0,0,0,0,0,0,0,0,3,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,1,0,0,0,0,0,2,0,0,1,0,0,0,0,0,3,
   ]);
+  world.setcb(function(){
+    mapChunks = world.getMap();
+    allBuffers = mapChunks;
+  })
 
   let mapChunks = world.getMap();
 
@@ -220,7 +286,7 @@ function main() {
     // gl.enable(gl.BLEND);
     // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    var projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 2000);
+    var projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 1000);
     var cameraMatrix = m4.identity();
     cameraMatrix = m4.translate(cameraMatrix, [CAMERA_X, CAMERA_Y, CAMERA_Z]);
     cameraMatrix = m4.rotateZ(cameraMatrix, CAMERA_ANGLE);

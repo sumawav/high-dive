@@ -1,12 +1,9 @@
-
-
-
 let a = [].concat(...[
-[0,1,1,1,0],
-[1,1,2,2,1],
-[1,1,2,2,1],
-[1,1,1,1,1],
-[0,1,1,0,0],
+  [0,1,1,1,0],
+  [1,1,2,2,1],
+  [1,1,2,2,1],
+  [1,1,1,1,1],
+  [0,1,1,0,0],
 ].reverse());
 
 let b = [].concat(...[
@@ -16,7 +13,16 @@ let b = [].concat(...[
   [6,7,7,7,7,7],
   [0,7,7,7,6,0],
   [0,3,4,6,5,0],
-  ].reverse());
+].reverse());
+
+let c = [].concat(...[
+  [0,1,3,2,14,0],
+  [2,14,15,15,15,14],
+  [13,15,15,15,15,13],
+  [14,15,15,15,15,15],
+  [0,15,15,15,14,0],
+  [0,13,14,14,13,0],
+].reverse());
 
 let empty = [
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -77,6 +83,10 @@ function getTerrainA() {
 
 function getTerrainB() {
   return insertIntoChunk(b, 6);;
+}
+
+function getTerrainC() {
+  return insertIntoChunk(c, 6);;
 }
 
 function getEmptyTerrain() {
