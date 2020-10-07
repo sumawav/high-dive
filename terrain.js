@@ -24,6 +24,8 @@ let c = [].concat(...[
   [0,13,14,14,13,0],
 ].reverse());
 
+let d = mat_rotate_cw(b);
+
 let empty = [
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -87,6 +89,10 @@ function getTerrainB() {
 
 function getTerrainC() {
   return insertIntoChunk(c, 6);;
+}
+
+function getTerrainD() {
+  return insertIntoChunk(d, 6);;
 }
 
 function getEmptyTerrain() {

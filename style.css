@@ -16,7 +16,7 @@ body {
 
 canvas {
   /* background-color: #fff; */
-  background-image: linear-gradient(#ffe0ac, #ffacb7 50%);
+  background-image: linear-gradient(#f9b384, #ca5116 50%);
   border: 1px solid black;
   /* NOTE: This size is changed if in iframe - see below '.iframe canvas' */
   width: 400px;
