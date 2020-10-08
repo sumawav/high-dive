@@ -64,8 +64,8 @@ function main() {
     let N = n || 16;
     let oldX;
     let oldY;
-    let offsetX = 0;
-    let offsetY = 0;
+    let coordX = 0;
+    let coordY = 0;
 
     let cb;
 
@@ -94,20 +94,20 @@ function main() {
         oldY = newY;
       if (newX > oldX){
         console.log("X+");
-        offsetX++;
+        coordX++;
         cb();
       } else if (newX < oldX){
         console.log("X-");
-        offsetX--;
+        coordX--;
         cb();
       }
       if (newY > oldY){
         console.log("Y+");
-        offsetY++;
+        coordY++;
         cb();
       } else if (newY < oldY){
         console.log("Y-");
-        offsetY--;
+        coordY--;
         cb();
       }
       oldX = newX;
@@ -119,30 +119,25 @@ function main() {
       for(let ii = 0; ii < atlas.length; ++ii) {
         let x = ii % N;
         let y = Math.floor(ii / N);
-
-        let rolloverX = Math.floor(Math.abs(offsetX) / N);
-        let rolloverY = Math.floor(Math.abs(offsetY) / N);
-        let actual_offset_x = offsetX % N;
-        let actual_offset_y = offsetY % N;
+        let rankX = Math.floor(Math.abs(coordX) / N);
+        let rankY = Math.floor(Math.abs(coordY) / N);
+        let offset_x = coordX % N;
+        let offset_y = coordY % N;
         let new_x;
         let new_y;
 
-        let neg_actual_offset_x = N + actual_offset_x - 1;
-        let neg_actual_offset_y = N + actual_offset_y - 1;
+        let neg_offset_x = N + offset_x - 1;
+        let neg_offset_y = N + offset_y - 1;
 
-        if (offsetX >= 0){
-          new_x = x + (x < actual_offset_x ? N : 0);
-          new_x += (rolloverX * N);
-        } else if (offsetX < 0){
-          new_x = x - (x > neg_actual_offset_x ? N : 0);  
-          new_x -= (rolloverX * N);
+        if (coordX >= 0){
+          new_x = x + (x < offset_x ? N : 0) + (rankX * N);
+        } else if (coordX < 0){
+          new_x = x - (x > neg_offset_x ? N : 0) - (rankX * N);
         }
-        if (offsetY >= 0){
-          new_y = y + (y < actual_offset_y ? N : 0);
-          new_y += (rolloverY * N);
-        } else if (offsetY < 0) {
-          new_y = y - (y > neg_actual_offset_y ? N : 0);  
-          new_y -= (rolloverY * N);
+        if (coordY >= 0){
+          new_y = y + (y < offset_y ? N : 0) + (rankY * N);
+        } else if (coordY < 0) {
+          new_y = y - (y > neg_offset_y ? N : 0) - (rankY * N);
         }
 
         let bufferArray = chunks[atlas[ii]];
@@ -151,7 +146,7 @@ function main() {
           worldMap.push({
             buffer: item.buffer,
             texture: item.texture,
-            worldPosition: [new_x * X_NUMBER * SCALE, new_y * X_NUMBER * SCALE, 0],
+            worldPosition: [new_x * CHUNK_N * SCALE, new_y * CHUNK_N * SCALE, 0],
           });
         });
       }
@@ -169,46 +164,11 @@ function main() {
   };
 
   let world = createWorld(MAP_N);
-  world.addChunk(createChunk(
-    0, 
-    0, 
-    X_NUMBER, 
-    SCALE, 
-    getEmptyTerrain(),
-    textureInfos
-  ));
-  world.addChunk(createChunk(
-    0, 
-    0, 
-    X_NUMBER, 
-    SCALE, 
-    getTerrainB(),
-    textureInfos
-  ));
-  world.addChunk(createChunk(
-    0, 
-    0, 
-    X_NUMBER, 
-    SCALE, 
-    getTerrainA(),
-    textureInfos
-  ));
-  world.addChunk(createChunk(
-    0, 
-    0, 
-    X_NUMBER, 
-    SCALE, 
-    getTerrainC(),
-    textureInfos
-  ));
-  world.addChunk(createChunk(
-    0, 
-    0, 
-    X_NUMBER, 
-    SCALE, 
-    getTerrainD(),
-    textureInfos
-  ));
+  world.addChunk(createChunk( CHUNK_N, SCALE, getEmptyTerrain(), textureInfos));
+  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainB(),     textureInfos));
+  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainA(),     textureInfos));
+  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainC(),     textureInfos));
+  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainD(),     textureInfos));
   world.addAtlas([
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,1,0,0,2,0,0,0,0,0,1,
@@ -273,10 +233,9 @@ function main() {
     if (sinkPressed){
       CAMERA_Z -= deltaTime * moveSpeed;
     }
-    let newOffsetX = Math.floor(CAMERA_X / (X_NUMBER * SCALE));
-    let newOffsetY = Math.floor(CAMERA_Y / (Y_NUMBER * SCALE));
-    // console.log(newOffsetX, newOffsetY);
-    world.updateOffset(newOffsetX, newOffsetY);
+    let newcoordX = Math.floor(CAMERA_X / (CHUNK_N * SCALE));
+    let newcoordY = Math.floor(CAMERA_Y / (CHUNK_N * SCALE));
+    world.updateOffset(newcoordX, newcoordY);
   }
 
   function draw() {

@@ -66,7 +66,7 @@ const insertIntoChunk = function(insert, smallN, bigN, chunkIn){
   ];
   let chunk = chunkIn|| emptyChunk;
   let sm = smallN;
-  let lg = bigN || X_NUMBER;
+  let lg = bigN || CHUNK_N;
   let newX = Math.floor(Math.random()*(lg - sm));
   let newY = Math.floor(Math.random()*(lg - sm));
   
@@ -80,19 +80,19 @@ const insertIntoChunk = function(insert, smallN, bigN, chunkIn){
 
 
 function getTerrainA() {
-  return insertIntoChunk(a, 5);;
+  return insertIntoChunk(mat_rotate_multi(a, Math.floor(Math.random()*4)), 5);
 }
 
 function getTerrainB() {
-  return insertIntoChunk(b, 6);;
+  return insertIntoChunk(mat_rotate_multi(b, Math.floor(Math.random()*4)), 6);
 }
 
 function getTerrainC() {
-  return insertIntoChunk(c, 6);;
+  return insertIntoChunk(mat_rotate_multi(c, Math.floor(Math.random()*4)), 6);
 }
 
 function getTerrainD() {
-  return insertIntoChunk(d, 6);;
+  return insertIntoChunk(mat_rotate_multi(d, Math.floor(Math.random()*4)), 6);
 }
 
 function getEmptyTerrain() {
