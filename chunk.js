@@ -1,43 +1,89 @@
 function createChunk(size, scale, terrain, textureInfos){
 
-  let tiles = [];
+  // let tiles = [];
   let walls = [];
   let waters = [];
   let tilesNotWaters = [];
-  let apothem = 0.5 * scale; // distance from center of regular polygon to midpoint of side
-  let step = 2 * apothem;
+  let waterWalls = [];
+  const apothem = 0.5 * scale; // distance from center of regular polygon to midpoint of side
+  const step = 2 * apothem;
 
-  // for (var jj = 0; jj < size; ++jj) {
-  //   for (var ii = 0; ii < size; ++ii) {
-  //     let tile = {
-  //       x: ii * step,
-  //       y: jj * step,
-  //       z: scale * terrain[jj*size + ii],
-  //       xScale: scale,
-  //       yScale: scale,
-  //       zScale: 1,
-  //       xRot: 0,
-  //       yRot: 0,
-  //       zRot: 0,
-  //       walls: {
-  //         top: 0,
-  //         bottom: 0,
-  //         left: 0,
-  //         right: 0,
-  //       }
-  //     };
-  //     if (tile.z === 0){
-  //       waters.push(tile);
-  //     } else {
-  //       tilesNotWaters.push(tile);
-  //     }
-  //     tiles.push(tile);
-  //   }
-  // }
+  const makeWall = function(x, y, direction, tileHeight, wallHeight){    
+    const wallInfoTemplate = {
+      x: x * step,
+      y: y * step,
+      z: tileHeight,
+      xScale: scale,
+      yScale: scale,
+      zScale: 1,
+      xRot: 0,
+      yRot: 0,
+      zRot: 0,
+    };
+    let wallInfo = Object.assign({},wallInfoTemplate);
+    if (direction === "down") {
+      wallInfo.y -= apothem;
+      wallInfo.z -= wallHeight/2;
+      wallInfo.yScale *= wallHeight/scale;
+      wallInfo.xRot = PI/2;
+    }
+    if (direction === "up") {
+      wallInfo.y += apothem;
+      wallInfo.z -= wallHeight/2;
+      wallInfo.yScale *= wallHeight/scale;
+      wallInfo.xRot = -PI/2;
+    }
+    if (direction === "left") {
+      wallInfo.x -= apothem;
+      wallInfo.z -= wallHeight/2;
+      wallInfo.zRot = -PI/2;
+      wallInfo.yScale *= wallHeight/scale;
+      wallInfo.yRot = -PI/2;
+    }
+    if (direction === "right") {
+      wallInfo.x += apothem;
+      wallInfo.z -= wallHeight/2;
+      wallInfo.zRot = PI/2;
+      wallInfo.yScale *= wallHeight/scale;
+      wallInfo.yRot = PI/2;
+    }
+    walls.push(wallInfo);
+  }
+
+  const makeWaterWall = function(x, y, tileHeight, wallHeight){    
+    const wallInfoTemplate = {
+      x: x * step,
+      y: y * step,
+      z: tileHeight,
+      xScale: scale,
+      yScale: scale,
+      zScale: 1,
+      xRot: 0,
+      yRot: 0,
+      zRot: 0,
+    };
+    let wallInfo = Object.assign({},wallInfoTemplate);
+    // if (direction === "down") {
+      wallInfo.y -= apothem * size + apothem;
+      wallInfo.x -= apothem;
+      wallInfo.z -= wallHeight/2;
+      wallInfo.yScale *= wallHeight/scale;
+      wallInfo.xScale *= size;
+      wallInfo.xRot = PI/2;
+    // }
+    // if (direction === "right") {
+    //   wallInfo.x += apothem;
+    //   wallInfo.z -= wallHeight/2;
+    //   wallInfo.zRot = PI/2;
+    //   wallInfo.yScale *= wallHeight/scale;
+    //   wallInfo.yRot = PI/2;
+    // }
+    waterWalls.push(wallInfo);
+  }
 
   for (let ii = 0; ii < size*size; ++ii) {
-    let x = ii % (size);
-    let y = Math.floor(ii / (size));
+    let x = ii % size;
+    let y = Math.floor(ii / size);
     let tileHeight = scale * terrain[ii];
     let rightMostColumn = size - 1;
     let leftMostColumn = 0;
@@ -53,76 +99,20 @@ function createChunk(size, scale, terrain, textureInfos){
       xRot: 0,
       yRot: 0,
       zRot: 0,
-      walls: {
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-      }
     };
-
-    const makeWall = function(x, y, direction, tileHeight, wallHeight){    
-      const wallInfoTemplate = {
-        x: x * step,
-        y: y * step,
-        z: tileHeight,
-        xScale: scale,
-        yScale: scale,
-        zScale: 1,
-        xRot: 0,
-        yRot: 0,
-        zRot: 0,
-        walls: null,
-      };
-      
-      if (direction === "down") {
-        let wallInfo = Object.assign({},wallInfoTemplate);
-        wallInfo.y -= apothem;
-        wallInfo.z -= wallHeight/2;
-        wallInfo.yScale *= wallHeight/scale;
-        wallInfo.xRot = PI/2;
-        walls.push(wallInfo);
-      }
-      if (direction === "up") {
-        let wallInfo = Object.assign({},wallInfoTemplate);
-        wallInfo.y += apothem;
-        wallInfo.z -= wallHeight/2;
-        wallInfo.yScale *= wallHeight/scale;
-        wallInfo.xRot = -PI/2;
-        walls.push(wallInfo);
-      }
-      if (direction === "left") {
-        let wallInfo = Object.assign({},wallInfoTemplate);
-        wallInfo.x -= apothem;
-        wallInfo.z -= wallHeight/2;
-        wallInfo.zRot = -PI/2;
-        wallInfo.yScale *= wallHeight/scale;
-        wallInfo.yRot = -PI/2;
-        walls.push(wallInfo);
-      }
-      if (direction === "right") {
-        let wallInfo = Object.assign({},wallInfoTemplate);
-        wallInfo.x += apothem;
-        wallInfo.z -= wallHeight/2;
-        wallInfo.zRot = PI/2;
-        wallInfo.yScale *= wallHeight/scale;
-        wallInfo.yRot = PI/2;
-        walls.push(wallInfo);
-      }
-    }
 
     // borders around chunk
     if (y === bottomMostRow){
-      tile.walls.bottom = tileHeight;
+      makeWall(x, y, "down", tileHeight, tileHeight);
     }
     if (y === topMostRow){
-      tile.walls.top = tileHeight;
+      makeWall(x, y, "up", tileHeight, tileHeight);
     }
     if (x === rightMostColumn){
-      tile.walls.right = tileHeight;
+      makeWall(x, y, "right", tileHeight, tileHeight);
     }
     if (x === leftMostColumn){
-      tile.walls.left = tileHeight;
+      makeWall(x, y, "left", tileHeight, tileHeight);
     }
     // right check
     if (x < (rightMostColumn)){
@@ -130,11 +120,6 @@ function createChunk(size, scale, terrain, textureInfos){
       if (tileHeight > rightTileHeight) {
         makeWall(x, y, "right", tileHeight, tileHeight - rightTileHeight);
       } else if ((tileHeight < rightTileHeight)) {
-        // tiles[ii + 1].walls.left = rightTileHeight - tileHeight;
-        //********/
-        // instead of adding to the walls object, 
-        // let's just add walls straight to the buffer
-        // makeWall(x+1, y, "left", rightTileHeight - tileHeight);
         makeWall(x+1, y, "left", rightTileHeight, rightTileHeight - tileHeight);
       }
     }
@@ -142,11 +127,8 @@ function createChunk(size, scale, terrain, textureInfos){
     if (y < (topMostRow)) {
       let aboveTileHeight = terrain[ii + size] * scale;
       if (tileHeight > aboveTileHeight) {
-        // tile.walls.top = tileHeight - aboveTileHeight;
         makeWall(x, y, "up", tileHeight, tileHeight - aboveTileHeight);
       } else if ((tileHeight < aboveTileHeight)) {
-        // tiles[ii + size].walls.bottom = aboveTileHeight - tileHeight;
-        // makeWall(x, y+1, "bottom", aboveTileHeight - tileHeight);
         makeWall(x, y+1, "down", aboveTileHeight, aboveTileHeight - tileHeight);
       }
     }
@@ -155,112 +137,48 @@ function createChunk(size, scale, terrain, textureInfos){
     } else {
       tilesNotWaters.push(tile);
     }
-    tiles.push(tile);
   }
 
-
-  // fills in walls
-  for (var ii = 0; ii < tiles.length; ++ii) {
-    var x = ii % (size);
-    var y = Math.floor(ii / (size));
-    var tileHeight = tiles[ii].z;
-    var rightMostColumn = size - 1;
-    var leftMostColumn = 0;
-    var topMostRow = size - 1;
-    var bottomMostRow = 0;
-
-    // borders around chunk
-    if (y === bottomMostRow){
-      tiles[ii].walls.bottom = tileHeight;
-    }
-    if (y === topMostRow){
-      tiles[ii].walls.top = tileHeight;
-    }
-    if (x === rightMostColumn){
-      tiles[ii].walls.right = tileHeight;
-    }
-    if (x === leftMostColumn){
-      tiles[ii].walls.left = tileHeight;
-    }
-    // right check
-    if (x < (rightMostColumn)){
-      var rightTileHeight = tiles[ii + 1].z;
-      if (tileHeight > rightTileHeight) {
-        // tiles[ii].walls.right = tileHeight - rightTileHeight;
-      } else if ((tileHeight < rightTileHeight)) {
-        tiles[ii + 1].walls.left = rightTileHeight - tileHeight;
-      }
-    }
-    // up check
-    if (y < (topMostRow)) {
-      var aboveTileHeight = tiles[ii + size].z;
-      if (tileHeight > aboveTileHeight) {
-        // tiles[ii].walls.top = tileHeight - aboveTileHeight;
-      } else if ((tileHeight < aboveTileHeight)) {
-        tiles[ii + size].walls.bottom = aboveTileHeight - tileHeight;
-      }
-    }
-  }
-
-  // create walls array
-  for (let jj = 0; jj < size; ++jj) {
-    for (let ii = 0; ii < size; ++ii) {
-      const x = ii * step;
-      const y = jj * step;
-      const drawInfo = tiles[jj*size + ii];
-      const wallInfoTemplate = {
-        x: x,
-        y: y,
-        z: scale * terrain[jj*size + ii],
-        xScale: scale,
-        yScale: scale,
+  if (waters.length === size*size){
+    waters = [];
+    if (ANIMATED_WATER){
+      console.log("ANIMATED WATER");
+      let center = (step * size / 2) - apothem;
+      let movingWater = {
+        x: center,
+        y: center,
+        z: 1*scale,
+        xScale: scale * size,
+        yScale: scale * size,
         zScale: 1,
         xRot: 0,
         yRot: 0,
         zRot: 0,
-        walls: null,
-      };
-      
-      // if (drawInfo.walls.bottom !== 0) {
-      //   let wallInfo = Object.assign({},wallInfoTemplate);
-      //   wallInfo.y -= apothem;
-      //   wallInfo.z -= drawInfo.walls.bottom/2;
-      //   wallInfo.yScale *= drawInfo.walls.bottom/scale;
-      //   wallInfo.xRot = PI/2;
-      //   walls.push(wallInfo);
-      // }
-      // if (drawInfo.walls.top !== 0) {
-      //   let wallInfo = Object.assign({},wallInfoTemplate);
-      //   wallInfo.y += apothem;
-      //   wallInfo.z -= drawInfo.walls.top/2;
-      //   wallInfo.yScale *= drawInfo.walls.top/scale;
-      //   wallInfo.xRot = -PI/2;
-      //   walls.push(wallInfo);
-      // }
-      // if (drawInfo.walls.left !== 0) {
-      //   let wallInfo = Object.assign({},wallInfoTemplate);
-      //   wallInfo.x -= apothem;
-      //   wallInfo.z -= drawInfo.walls.left/2;
-      //   wallInfo.zRot = -PI/2;
-      //   wallInfo.yScale *= drawInfo.walls.left/scale;
-      //   wallInfo.yRot = -PI/2;
-      //   walls.push(wallInfo);
-      // }
-      // if (drawInfo.walls.right !== 0) {
-      //   let wallInfo = Object.assign({},wallInfoTemplate);
-      //   wallInfo.x += apothem;
-      //   wallInfo.z -= drawInfo.walls.right/2;
-      //   wallInfo.zRot = PI/2;
-      //   wallInfo.yScale *= drawInfo.walls.right/scale;
-      //   wallInfo.yRot = PI/2;
-      //   walls.push(wallInfo);
-      // }
+      };      
+      makeWaterWall(size/2, size/2, 1*scale, 2*scale);
+      waters.push(movingWater);
+    } else {
+      console.log("BIG WATER");
+      let bigWater = {
+        x: (step * size / 2) - apothem,
+        y: (step * size / 2) - apothem,
+        z: 0,
+        xScale: scale * size,
+        yScale: scale * size,
+        zScale: 1,
+        xRot: 0,
+        yRot: 0,
+        zRot: 0,
+      };      
+      waters.push(bigWater);
     }
+    
   }
 
   let tileArrays = [];
   let wallArrays = [];
   let waterArrays = [];
+  let waterWallArrays = [];
 
   function createXYQuadVertices(size, xOffset, yOffset) {
     size = size || 2;
@@ -333,6 +251,11 @@ function createChunk(size, scale, terrain, textureInfos){
     waterArrays.push(doThings(tiles));
   });
 
+  waterWalls.forEach(function(tiles){
+    waterWallArrays.push(doThings(tiles));
+  });
+
+
   let buffers = [];
 
   if (tileArrays.length > 0){
@@ -357,6 +280,14 @@ function createChunk(size, scale, terrain, textureInfos){
     buffers.push({
       buffer: watersBufferInfo,
       texture: textureInfos.water.texture,
+    });
+  }
+  if (waterWallArrays.length > 0) {
+    let combinedWaterWallArrays = twgl.primitives.concatVertices(waterWallArrays);
+    const waterWallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterWallArrays);
+    buffers.push({
+      buffer: waterWallsBufferInfo,
+      texture: textureInfos.waterWall.texture,
     });
   }
 
