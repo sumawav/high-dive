@@ -1,4 +1,4 @@
-function createChunk(size, scale, terrain, textureInfos){
+function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
 
   // let tiles = [];
   let walls = [];
@@ -7,6 +7,65 @@ function createChunk(size, scale, terrain, textureInfos){
   let waterWalls = [];
   const apothem = 0.5 * scale; // distance from center of regular polygon to midpoint of side
   const step = 2 * apothem;
+
+  const doThings = function(tile) {
+    let translation = [tile.x, tile.y, tile.z];
+    let scale = [tile.xScale, tile.yScale, tile.zScale];
+    let arrays = createXYQuadVertices(1);
+    let chunkMatrix = m4.identity();
+    let chunkMatrixArray = twgl.primitives.createAugmentedTypedArray(16, 4);
+    const quad_vertices = 4;
+
+    // pre-calculate world matrix for every quad in chunk 
+    chunkMatrix = m4.translate(chunkMatrix, translation);
+    chunkMatrix = m4.rotateX(chunkMatrix, tile.xRot);
+    chunkMatrix = m4.rotateY(chunkMatrix, tile.yRot);
+    chunkMatrix = m4.rotateZ(chunkMatrix, tile.zRot);
+    chunkMatrix = m4.scale(chunkMatrix, scale);
+
+    for (let ii = 0; ii  < quad_vertices; ++ii) {
+      chunkMatrixArray.push(chunkMatrix);
+
+      // scale texcoordinates
+      arrays.texcoord.data[2 * ii] *= tile.xScale / SCALE;
+      arrays.texcoord.data[(2 * ii) + 1] *= tile.yScale / SCALE;
+    }
+    arrays.chunk.data = chunkMatrixArray
+    return arrays;
+  }
+
+  function createXYQuadVertices(size, xOffset, yOffset) {
+    size = size || 2;
+    xOffset = xOffset || 0;
+    yOffset = yOffset || 0;
+    size *= 0.5;
+    return {
+      position: {
+        numComponents: 2,
+        data: [
+          xOffset + -1 * size, yOffset + -1 * size,
+          xOffset + 1 * size, yOffset + -1 * size,
+          xOffset + -1 * size, yOffset + 1 * size,
+          xOffset + 1 * size, yOffset + 1 * size,
+        ]
+      },
+      normal: {
+        numComponents: 3,
+        data: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]
+      },
+      texcoord: {
+        numComponents: 2,
+        data: [
+          0, 0, 1, 0, 0, 1, 1, 1
+        ],
+      },
+      indices: [0, 1, 2, 2, 1, 3],
+      chunk: {
+        numComponents: 16,
+        data: [],
+      },
+    };
+  }
 
   const makeWall = function(x, y, direction, tileHeight, wallHeight){    
     const wallInfoTemplate = {
@@ -70,13 +129,17 @@ function createChunk(size, scale, terrain, textureInfos){
       wallInfo.yScale *= wallHeight/scale;
       wallInfo.xScale *= size;
       wallInfo.xRot = PI/2;
+      waterWalls.push(wallInfo);
     // }
+    wallInfo = Object.assign({},wallInfoTemplate);
     // if (direction === "right") {
-    //   wallInfo.x += apothem;
-    //   wallInfo.z -= wallHeight/2;
-    //   wallInfo.zRot = PI/2;
-    //   wallInfo.yScale *= wallHeight/scale;
-    //   wallInfo.yRot = PI/2;
+      wallInfo.x += apothem * size - apothem;
+      wallInfo.y -= apothem;
+      wallInfo.z -= wallHeight/2;
+      wallInfo.zRot = PI/2;
+      wallInfo.yScale *= wallHeight/scale;
+      wallInfo.xScale *= size;
+      wallInfo.yRot = PI/2;
     // }
     waterWalls.push(wallInfo);
   }
@@ -102,17 +165,19 @@ function createChunk(size, scale, terrain, textureInfos){
     };
 
     // borders around chunk
-    if (y === bottomMostRow){
-      makeWall(x, y, "down", tileHeight, tileHeight);
-    }
-    if (y === topMostRow){
-      makeWall(x, y, "up", tileHeight, tileHeight);
-    }
-    if (x === rightMostColumn){
-      makeWall(x, y, "right", tileHeight, tileHeight);
-    }
-    if (x === leftMostColumn){
-      makeWall(x, y, "left", tileHeight, tileHeight);
+    if (tile.z !== 0){
+      if (y === bottomMostRow){
+        makeWall(x, y, "down", tileHeight, tileHeight);
+      }
+      if (y === topMostRow){
+        makeWall(x, y, "up", tileHeight, tileHeight);
+      }
+      if (x === rightMostColumn){
+        makeWall(x, y, "right", tileHeight, tileHeight);
+      }
+      if (x === leftMostColumn){
+        makeWall(x, y, "left", tileHeight, tileHeight);
+      }
     }
     // right check
     if (x < (rightMostColumn)){
@@ -180,65 +245,6 @@ function createChunk(size, scale, terrain, textureInfos){
   let waterArrays = [];
   let waterWallArrays = [];
 
-  function createXYQuadVertices(size, xOffset, yOffset) {
-    size = size || 2;
-    xOffset = xOffset || 0;
-    yOffset = yOffset || 0;
-    size *= 0.5;
-    return {
-      position: {
-        numComponents: 2,
-        data: [
-          xOffset + -1 * size, yOffset + -1 * size,
-          xOffset + 1 * size, yOffset + -1 * size,
-          xOffset + -1 * size, yOffset + 1 * size,
-          xOffset + 1 * size, yOffset + 1 * size,
-        ]
-      },
-      normal: {
-        numComponents: 3,
-        data: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]
-      },
-      texcoord: {
-        numComponents: 2,
-        data: [
-          0, 0, 1, 0, 0, 1, 1, 1
-        ],
-      },
-      indices: [0, 1, 2, 2, 1, 3],
-      chunk: {
-        numComponents: 16,
-        data: [],
-      },
-    };
-  }
-
-  const doThings = function(tile) {
-    let translation = [tile.x, tile.y, tile.z];
-    let scale = [tile.xScale, tile.yScale, tile.zScale];
-    let arrays = createXYQuadVertices(1);
-    let chunkMatrix = m4.identity();
-    let chunkMatrixArray = twgl.primitives.createAugmentedTypedArray(16, 4);
-    const quad_vertices = 4;
-
-    // pre-calculate world matrix for every quad in chunk 
-    chunkMatrix = m4.translate(chunkMatrix, translation);
-    chunkMatrix = m4.rotateX(chunkMatrix, tile.xRot);
-    chunkMatrix = m4.rotateY(chunkMatrix, tile.yRot);
-    chunkMatrix = m4.rotateZ(chunkMatrix, tile.zRot);
-    chunkMatrix = m4.scale(chunkMatrix, scale);
-
-    for (let ii = 0; ii  < quad_vertices; ++ii) {
-      chunkMatrixArray.push(chunkMatrix);
-
-      // scale texcoordinates
-      arrays.texcoord.data[2 * ii] *= tile.xScale / SCALE;
-      arrays.texcoord.data[(2 * ii) + 1] *= tile.yScale / SCALE;
-    }
-    arrays.chunk.data = chunkMatrixArray
-    return arrays;
-  }
-
   tilesNotWaters.forEach(function(tiles){
     tileArrays.push(doThings(tiles));
   });
@@ -262,32 +268,40 @@ function createChunk(size, scale, terrain, textureInfos){
     let combinedTileArrays = twgl.primitives.concatVertices(tileArrays);
     const tilesBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedTileArrays);
     buffers.push({
+      type: "tile",
       buffer: tilesBufferInfo,
       texture: textureInfos.grass.texture,
+      programInfo: pinfo1,
     });
   }
   if (wallArrays.length > 0){
     let combinedWallArrays = twgl.primitives.concatVertices(wallArrays);
     const wallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWallArrays);
     buffers.push({
+      type: "wall",
       buffer: wallsBufferInfo,
       texture: textureInfos.dirt.texture,
+      programInfo: pinfo1,
     });
   }
   if (waterArrays.length > 0) {
     let combinedWaterArrays = twgl.primitives.concatVertices(waterArrays);
     const watersBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterArrays);
     buffers.push({
+      type: "water",
       buffer: watersBufferInfo,
       texture: textureInfos.water.texture,
+      programInfo: pinfo1,
     });
   }
   if (waterWallArrays.length > 0) {
     let combinedWaterWallArrays = twgl.primitives.concatVertices(waterWallArrays);
     const waterWallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterWallArrays);
     buffers.push({
+      type: "waterWall",
       buffer: waterWallsBufferInfo,
       texture: textureInfos.waterWall.texture,
+      programInfo: pinfo2,
     });
   }
 

@@ -24,12 +24,15 @@ function main() {
   twgl.resizeCanvasToDisplaySize(gl.canvas);
 
   // setup GLSL program
-  const vertexShaderScript = document.getElementById("drawImage-vertex-shader2");
+  const vertexShaderScript = document.getElementById("general-vertex-shader");
+  const waterVertexShaderScript = document.getElementById("water-vertex-shader");
   const fragmentShaderScript = document.getElementById("drawImage-fragment-shader");
   const programInfo = twgl.createProgramInfo(gl, [vertexShaderScript.text, fragmentShaderScript.text]);
 
+  const waterProgramInfo = twgl.createProgramInfo(gl, [waterVertexShaderScript.text, fragmentShaderScript.text]);
+
   // lookup a few uniforms
-  var textureLocation = gl.getUniformLocation(programInfo.program, "u_texture");
+  // var textureLocation = gl.getUniformLocation(programInfo.program, "u_texture");
   // var reverseLightDirectionLocation = gl.getUniformLocation(programInfo.program, "u_reverseLightDirection");
 
 
@@ -66,19 +69,18 @@ function main() {
 
 
   let world = createWorld(MAP_N);
-  world.addChunk(createChunk( CHUNK_N, SCALE, getEmptyTerrain(), textureInfos));
-  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainB(),     textureInfos));
-  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainA(),     textureInfos));
-  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainC(),     textureInfos));
-  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainD(),     textureInfos));
+  world.addChunk(createChunk( CHUNK_N, SCALE, getEmptyTerrain(), textureInfos, programInfo, waterProgramInfo));
+  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainB(),     textureInfos, programInfo, waterProgramInfo));
+  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainA(),     textureInfos, programInfo, waterProgramInfo));
+  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainC(),     textureInfos, programInfo, waterProgramInfo));
+  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainD(),     textureInfos, programInfo, waterProgramInfo));
 
   world.addAtlas([
-    0,0,0,0,0,0,
-    0,0,0,0,0,0,
-    0,1,2,3,4,0,
-    0,0,0,0,0,0,
-    0,0,0,0,0,0,
-    0,0,0,0,0,0,
+    randInt(4),randInt(4),randInt(4),randInt(4),randInt(4),
+    randInt(4),randInt(4),randInt(4),0,0,
+    0,0,0,0,randInt(4),
+    0,0,0,randInt(4),0,
+    randInt(4),0,0,0,0,
   ]);
   if (WORLD_LOOPING){
     world.setcb(function(){
@@ -159,25 +161,35 @@ function main() {
     var viewMatrix = m4.inverse(cameraMatrix);
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
-    gl.useProgram(programInfo.program);
+    // gl.useProgram(programInfo.program);
 
     let draw_calls = 0;
     
     // console.log("all buffers length: ", allBuffers.length);
 
+    let lastType = null;
+
     allBuffers.forEach(function(item){
-      gl.bindTexture(gl.TEXTURE_2D, item.texture);
-      twgl.setBuffersAndAttributes(gl, programInfo, item.buffer);
-  
-      var texMatrix = m4.identity(); // not actually needed
-  
-      gl.uniform1i(textureLocation, 0);
-  
-      twgl.setUniforms(programInfo, {
-        u_viewProjection: viewProjectionMatrix,
-        u_textureMatrix: texMatrix,
-        u_worldPosition: item.worldPosition,
-      });
+
+      if (item.type !== lastType){
+        lastType = item.type;
+        
+        gl.useProgram(item.programInfo.program);
+        gl.bindTexture(gl.TEXTURE_2D, item.texture);
+
+        var textureLocation = gl.getUniformLocation(item.programInfo.program, "u_texture");
+        gl.uniform1i(textureLocation, 0);
+
+      }
+        var texMatrix = m4.identity(); // needed?
+        twgl.setUniforms(item.programInfo, {
+          u_viewProjection: viewProjectionMatrix,
+          u_textureMatrix: texMatrix,
+          u_worldPosition: item.worldPosition,
+          // u_texture: 0,
+        });
+
+        twgl.setBuffersAndAttributes(gl, programInfo, item.buffer);
   
       twgl.drawBufferInfo(gl, item.buffer);
       draw_calls++;

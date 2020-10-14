@@ -51,3 +51,8 @@ const mat_rotate_multi = (mat, num, dir) => {
 
     return spin;
 }
+
+const randInt = (max, _min) =>{
+    const min = _min || 0;
+    return Math.floor(Math.random()*(max - min)) + min;
+}

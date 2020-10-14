@@ -982,6 +982,10 @@ function drawBufferInfo(gl, bufferInfo, type, count, offset, instanceCount) {
     if (instanceCount !== undefined) {
       gl.drawElementsInstanced(type, numElements, elementType === undefined ? UNSIGNED_SHORT : bufferInfo.elementType, offset, instanceCount);
     } else {
+      // SUMA
+      TEST++;
+      if (TEST === 76)
+        return
       gl.drawElements(type, numElements, elementType === undefined ? UNSIGNED_SHORT : bufferInfo.elementType, offset);
     }
   } else {
