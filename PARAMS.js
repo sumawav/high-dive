@@ -3,7 +3,7 @@
 let STILL = false;
 let ROTATE = false;
 // let WIREFRAME = false;
-let ANIMATED_WATER = false;
+let ANIMATED_WATER = true;
 let WORLD_LOOPING = false
 let LOG_KEYS = false;
 let LOG_DRAW_CALLS = true;

@@ -93,18 +93,18 @@ let createWorld = function (n) {
             });
         }
         console.log(worldMap);
-        // worldMap.sort((_a, _b) => {
-        //     const a = _a.type.toUpperCase();
-        //     const b = _b.type.toUpperCase();
+        worldMap.sort((_a, _b) => {
+            const a = _a.type.toUpperCase();
+            const b = _b.type.toUpperCase();
 
-        //     let out = 0;
-        //     if (a > b) {
-        //         out = 1;
-        //     } else if (a < b) {
-        //         out = -1;
-        //     }
-        //     return out;
-        // });
+            let out = 0;
+            if (a > b) {
+                out = 1;
+            } else if (a < b) {
+                out = -1;
+            }
+            return out;
+        });
         console.log(worldMap);
         return worldMap;
     }
