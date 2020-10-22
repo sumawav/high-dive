@@ -113,7 +113,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
     const wallInfoTemplate = {
       x: x * step,
       y: y * step,
-      z: tileHeight,
+      z: tileHeight - wallHeight/2,
       xScale: scale,
       yScale: scale,
       zScale: 1,
@@ -212,7 +212,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       let movingWater = {
         x: center,
         y: center,
-        z: 1*scale,
+        z: 0*scale,
         xScale: scale * size,
         yScale: scale * size,
         zScale: 1,
@@ -291,7 +291,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       type: "water",
       buffer: watersBufferInfo,
       texture: textureInfos.water.texture,
-      programInfo: pinfo1,
+      programInfo: pinfo2,
     });
   }
   if (waterWallArrays.length > 0) {

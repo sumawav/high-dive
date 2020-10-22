@@ -1,25 +1,27 @@
 
 
-let STILL = false;
+let GLOBAL_CLOCK = 0;
+
+// let STILL = false;
 let ROTATE = false;
 // let WIREFRAME = false;
 let ANIMATED_WATER = true;
-let WORLD_LOOPING = false
+let WORLD_LOOPING = true
 let LOG_KEYS = false;
-let LOG_DRAW_CALLS = true;
+let LOG_DRAW_CALLS = false;
 let WORLD_ROTATE = 0;
 let CHUNK_N = 16;
 // let Y_NUMBER = 16;
 let Z_NUMBER = 0;
-let MAP_N = 5;
+let MAP_N = 9;
 let SPEED = 20;
 let SCALE = 10;
 let X = 0;
 let Y = 0;
 let Z = 0;
 // let TEXTURE_SCALE = 16;
-let TEXTURE_SPEED = 0;
-let BORDER_WIDTH = 10;
+// let TEXTURE_SPEED = 0;
+// let BORDER_WIDTH = 10;
 let PI = Math.PI;
 let CAMERA_ANGLE = degToRad(0);
 let CAMERA_RADIUS = 32;

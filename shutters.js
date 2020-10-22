@@ -28,16 +28,9 @@ function main() {
   const waterVertexShaderScript = document.getElementById("water-vertex-shader");
   const fragmentShaderScript = document.getElementById("drawImage-fragment-shader");
   const programInfo = twgl.createProgramInfo(gl, [vertexShaderScript.text, fragmentShaderScript.text]);
-
   const waterProgramInfo = twgl.createProgramInfo(gl, [waterVertexShaderScript.text, fragmentShaderScript.text]);
 
-  // lookup a few uniforms
-  // var textureLocation = gl.getUniformLocation(programInfo.program, "u_texture");
-  // var reverseLightDirectionLocation = gl.getUniformLocation(programInfo.program, "u_reverseLightDirection");
-
-
-
-  var textureInfos = {
+  const textureInfos = {
     "grass": {
       texture: twgl.createTexture(gl, {src: 'texture_01.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
       width: 16,
@@ -75,12 +68,23 @@ function main() {
   world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainC(),     textureInfos, programInfo, waterProgramInfo));
   world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainD(),     textureInfos, programInfo, waterProgramInfo));
 
+  // world.addAtlas([
+  //   randInt(4),randInt(4),randInt(4),randInt(4),randInt(4),
+  //   randInt(4),randInt(4),randInt(4),0,0,
+  //   0,0,0,0,randInt(4),
+  //   0,0,0,randInt(4),0,
+  //   randInt(4),0,0,0,0,
+  // ]);
   world.addAtlas([
-    randInt(4),randInt(4),randInt(4),randInt(4),randInt(4),
-    randInt(4),randInt(4),randInt(4),0,0,
-    0,0,0,0,randInt(4),
-    0,0,0,randInt(4),0,
-    randInt(4),0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,3,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
   ]);
   if (WORLD_LOOPING){
     world.setcb(function(){
@@ -136,7 +140,8 @@ function main() {
     world.updateOffset(newcoordX, newcoordY);
   }
 
-  function draw() {
+  function draw(deltaTime) {
+    GLOBAL_CLOCK += deltaTime;
     twgl.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     // gl.clearColor(104/255, 134/255, 197/255, 1.0);
@@ -151,22 +156,16 @@ function main() {
     // gl.enable(gl.BLEND);
     // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    var projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 1000);
-    var cameraMatrix = m4.identity();
+    let projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 1000);
+    let cameraMatrix = m4.identity();
     cameraMatrix = m4.translate(cameraMatrix, [CAMERA_X, CAMERA_Y, CAMERA_Z]);
     cameraMatrix = m4.rotateZ(cameraMatrix, CAMERA_ANGLE);
     cameraMatrix = m4.translate(cameraMatrix, [0, -CAMERA_RADIUS * 2.5, CAMERA_RADIUS]);
     cameraMatrix = m4.rotateX(cameraMatrix, CAMERA_TILT);
 
-    var viewMatrix = m4.inverse(cameraMatrix);
-    var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
-
-    // gl.useProgram(programInfo.program);
-
+    let viewMatrix = m4.inverse(cameraMatrix);
+    let viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
     let draw_calls = 0;
-    
-    // console.log("all buffers length: ", allBuffers.length);
-
     let lastType = null;
 
     allBuffers.forEach(function(item){
@@ -177,17 +176,18 @@ function main() {
         gl.useProgram(item.programInfo.program);
         gl.bindTexture(gl.TEXTURE_2D, item.texture);
 
-        var textureLocation = gl.getUniformLocation(item.programInfo.program, "u_texture");
+        let textureLocation = gl.getUniformLocation(item.programInfo.program, "u_texture");
         gl.uniform1i(textureLocation, 0);
 
       }
-        var texMatrix = m4.identity(); // needed?
-        twgl.setUniforms(item.programInfo, {
-          u_viewProjection: viewProjectionMatrix,
-          u_textureMatrix: texMatrix,
-          u_worldPosition: item.worldPosition,
-          // u_texture: 0,
-        });
+      let texMatrix = m4.identity(); // needed?
+      // console.log("deltaTime: ", GLOBAL_CLOCK);
+      twgl.setUniforms(item.programInfo, {
+        u_viewProjection: viewProjectionMatrix,
+        u_textureMatrix: texMatrix,
+        u_worldPosition: item.worldPosition,
+        u_clock: GLOBAL_CLOCK,
+      });
 
         twgl.setBuffersAndAttributes(gl, programInfo, item.buffer);
   
@@ -201,12 +201,12 @@ function main() {
 
   var then = 0;
   function render(time) {
-    var now = time * 0.001;
-    var deltaTime = Math.min(0.1, now - then);
+    let now = time * 0.001;
+    let deltaTime = Math.min(0.1, now - then);
     then = now;
 
     update(deltaTime);
-    draw();
+    draw(deltaTime);
 
     capturer.capture(canvas);
     meter.tick();

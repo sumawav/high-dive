@@ -80,35 +80,19 @@ const insertIntoChunk = function(insert, smallN, bigN, chunkIn){
 
 
 function getTerrainA() {
-  return insertIntoChunk(
-    mat_rotate_multi(
-      a, 
-      Math.floor(Math.random()*4)), 
-      5);
+  return insertIntoChunk(mat_rotate_multi(a, randInt(5)), 5);
 }
 
 function getTerrainB() {
-  return insertIntoChunk(
-    mat_rotate_multi(
-      b, 
-      Math.floor(Math.random()*4)), 
-      6);
+  return insertIntoChunk(mat_rotate_multi(b, randInt(5)), 6);
 }
 
 function getTerrainC() {
-  return insertIntoChunk(
-    mat_rotate_multi(
-      c, 
-      Math.floor(Math.random()*4)), 
-      6);
+  return insertIntoChunk(mat_rotate_multi(c, randInt(5)), 6);
 }
 
 function getTerrainD() {
-  return insertIntoChunk(
-    mat_rotate_multi(
-      d, 
-      Math.floor(Math.random()*4)), 
-      6);
+  return insertIntoChunk(mat_rotate_multi(d, randInt(5)), 6);
 }
 
 function getEmptyTerrain() {
