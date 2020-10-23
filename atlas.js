@@ -82,6 +82,9 @@ let createWorld = function (n) {
 
             let bufferArray = chunks[atlas[ii]];
 
+            new_x += TEST_X;
+            new_y += TEST_Y;
+
             bufferArray.forEach(function (item) {
                 worldMap.push({
                     type: item.type,
@@ -92,7 +95,7 @@ let createWorld = function (n) {
                 });
             });
         }
-        console.log(worldMap);
+        // console.log(worldMap);
         worldMap.sort((_a, _b) => {
             const a = _a.type.toUpperCase();
             const b = _b.type.toUpperCase();
@@ -105,7 +108,7 @@ let createWorld = function (n) {
             }
             return out;
         });
-        console.log(worldMap);
+        // console.log(worldMap);
         return worldMap;
     }
 

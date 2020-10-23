@@ -237,7 +237,8 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       };      
       waters.push(bigWater);
     }
-    
+  } else {
+    makeWaterWall(size/2, size/2, 1*scale, 2*scale);
   }
 
   let tileArrays = [];

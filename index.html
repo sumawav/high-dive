@@ -84,7 +84,7 @@
   
   void main() {
     vec2 scaled_world_position = u_worldPosition.xy + (vec2(u_clock, u_clock) / 10.);
-    float wave = 5. + 10. * snoise(scaled_world_position) ;
+    float wave = 10. + 10. * snoise(scaled_world_position) ;
     vec4 cp = a_chunk * a_position;
     vec4 wcp = cp + vec4(u_worldPosition, 0) + vec4(0, 0, wave, 0);
     gl_Position = u_viewProjection * wcp;

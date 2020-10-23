@@ -32,12 +32,12 @@ function main() {
 
   const textureInfos = {
     "grass": {
-      texture: twgl.createTexture(gl, {src: 'texture_01.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
+      texture: twgl.createTexture(gl, {src: 'texture_C.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
       width: 16,
       height: 16,
     },
     "dirt": {
-      texture: twgl.createTexture(gl, {src: 'texture_02.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
+      texture: twgl.createTexture(gl, {src: 'texture_D.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
       width: 16,
       height: 16,
     },
@@ -47,17 +47,34 @@ function main() {
       height: 16,
     },    
     "water": {
-      texture: twgl.createTexture(gl, {src: 'texture_03.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
+      texture: twgl.createTexture(gl, {src: 'texture_B.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
       width: 16,
       height: 16,
     },
     "waterWall": {
-      texture: twgl.createTexture(gl, {src: 'texture_04.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
+      texture: twgl.createTexture(gl, {src: 'texture_C.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
       width: 16,
       height: 16,
     },
   };
 
+
+let atlass = [];
+
+for (let ii = 0; ii < MAP_N*MAP_N; ++ii){
+  atlass[ii] = 0;
+  if(randInt(50) === 5){
+    atlass[ii] = 1;
+  }
+  if(randInt(100) === 5){
+    atlass[ii] = 2;
+  }
+  if(randInt(200) === 5){
+    atlass[ii] = 3;
+  }
+}
+
+atlass[Math.floor(MAP_N*MAP_N/2)] = 3;
 
 
 
@@ -66,26 +83,10 @@ function main() {
   world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainB(),     textureInfos, programInfo, waterProgramInfo));
   world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainA(),     textureInfos, programInfo, waterProgramInfo));
   world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainC(),     textureInfos, programInfo, waterProgramInfo));
-  world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainD(),     textureInfos, programInfo, waterProgramInfo));
+  // world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainD(),     textureInfos, programInfo, waterProgramInfo));
 
-  // world.addAtlas([
-  //   randInt(4),randInt(4),randInt(4),randInt(4),randInt(4),
-  //   randInt(4),randInt(4),randInt(4),0,0,
-  //   0,0,0,0,randInt(4),
-  //   0,0,0,randInt(4),0,
-  //   randInt(4),0,0,0,0,
-  // ]);
-  world.addAtlas([
-    0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,
-    0,0,0,0,3,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,
-  ]);
+
+  world.addAtlas(atlass);
   if (WORLD_LOOPING){
     world.setcb(function(){
       mapChunks = world.getMap();
@@ -156,7 +157,7 @@ function main() {
     // gl.enable(gl.BLEND);
     // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    let projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 1000);
+    let projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 2500);
     let cameraMatrix = m4.identity();
     cameraMatrix = m4.translate(cameraMatrix, [CAMERA_X, CAMERA_Y, CAMERA_Z]);
     cameraMatrix = m4.rotateZ(cameraMatrix, CAMERA_ANGLE);
