@@ -32,27 +32,22 @@ function main() {
 
   const textureInfos = {
     "grass": {
-      texture: twgl.createTexture(gl, {src: 'texture_C.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
+      texture: twgl.createTexture(gl, {src: palette.grass, mag: gl.NEAREST, wrap: gl.REPEAT }),
       width: 16,
       height: 16,
     },
     "dirt": {
-      texture: twgl.createTexture(gl, {src: 'texture_D.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
+      texture: twgl.createTexture(gl, {src: palette.dirt, mag: gl.NEAREST, wrap: gl.REPEAT }),
       width: 16,
       height: 16,
     },
-    "tile": {
-      texture: twgl.createTexture(gl, {src: 'texture_00.png'}),
-      width: 16,
-      height: 16,
-    },    
     "water": {
-      texture: twgl.createTexture(gl, {src: 'texture_B.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
+      texture: twgl.createTexture(gl, {src: palette.water, mag: gl.NEAREST, wrap: gl.REPEAT }),
       width: 16,
       height: 16,
     },
     "waterWall": {
-      texture: twgl.createTexture(gl, {src: 'texture_C.png', mag: gl.NEAREST, wrap: gl.REPEAT }),
+      texture: twgl.createTexture(gl, {src: palette.grass , mag: gl.NEAREST, wrap: gl.REPEAT }),
       width: 16,
       height: 16,
     },
@@ -157,7 +152,7 @@ atlass[Math.floor(MAP_N*MAP_N/2)] = 3;
     // gl.enable(gl.BLEND);
     // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    let projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 2500);
+    let projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 4000);
     let cameraMatrix = m4.identity();
     cameraMatrix = m4.translate(cameraMatrix, [CAMERA_X, CAMERA_Y, CAMERA_Z]);
     cameraMatrix = m4.rotateZ(cameraMatrix, CAMERA_ANGLE);

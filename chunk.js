@@ -262,7 +262,6 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
     waterWallArrays.push(doThings(tiles));
   });
 
-
   let buffers = [];
 
   if (tileArrays.length > 0){
