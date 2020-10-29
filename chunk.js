@@ -3,6 +3,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
   // let tiles = [];
   let walls = [];
   let waters = [];
+  let bigWaters = [];
   let tilesNotWaters = [];
   let waterWalls = [];
   const apothem = 0.5 * scale; // distance from center of regular polygon to midpoint of side
@@ -49,10 +50,10 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
           xOffset + 1 * size, yOffset + 1 * size,
         ]
       },
-      normal: {
-        numComponents: 3,
-        data: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]
-      },
+      // normal: {
+      //   numComponents: 3,
+      //   data: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]
+      // },
       texcoord: {
         numComponents: 2,
         data: [
@@ -207,7 +208,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
   if (waters.length === size*size){
     waters = [];
     if (ANIMATED_WATER){
-      console.log("ANIMATED WATER");
+      console.log("ANIMATED BIG WATER");
       let center = (step * size / 2) - apothem;
       let movingWater = {
         x: center,
@@ -221,21 +222,21 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
         zRot: 0,
       };      
       makeWaterWall(size/2, size/2, 1*scale, 2*scale);
-      waters.push(movingWater);
+      bigWaters.push(movingWater);
     } else {
-      console.log("BIG WATER");
-      let bigWater = {
-        x: (step * size / 2) - apothem,
-        y: (step * size / 2) - apothem,
-        z: 0,
-        xScale: scale * size,
-        yScale: scale * size,
-        zScale: 1,
-        xRot: 0,
-        yRot: 0,
-        zRot: 0,
-      };      
-      waters.push(bigWater);
+      // console.log("BIG WATER");
+      // let bigWater = {
+      //   x: (step * size / 2) - apothem,
+      //   y: (step * size / 2) - apothem,
+      //   z: 0,
+      //   xScale: scale * size,
+      //   yScale: scale * size,
+      //   zScale: 1,
+      //   xRot: 0,
+      //   yRot: 0,
+      //   zRot: 0,
+      // };      
+      // waters.push(bigWater);
     }
   } else {
     makeWaterWall(size/2, size/2, 1*scale, 2*scale);
@@ -244,64 +245,80 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
   let tileArrays = [];
   let wallArrays = [];
   let waterArrays = [];
+  let bigWaterArrays = [];
   let waterWallArrays = [];
+  let buffers = [];
 
   tilesNotWaters.forEach(function(tiles){
     tileArrays.push(doThings(tiles));
   });
-
-  walls.forEach(function(tiles){
-    wallArrays.push(doThings(tiles));
-  });
-
-  waters.forEach(function(tiles){
-    waterArrays.push(doThings(tiles));
-  });
-
-  waterWalls.forEach(function(tiles){
-    waterWallArrays.push(doThings(tiles));
-  });
-
-  let buffers = [];
-
   if (tileArrays.length > 0){
     let combinedTileArrays = twgl.primitives.concatVertices(tileArrays);
     const tilesBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedTileArrays);
     buffers.push({
       type: "tile",
       buffer: tilesBufferInfo,
+      // arrays:combinedTileArrays,
       texture: textureInfos.grass.texture,
       programInfo: pinfo1,
     });
   }
+
+  walls.forEach(function(tiles){
+    wallArrays.push(doThings(tiles));
+  });
   if (wallArrays.length > 0){
     let combinedWallArrays = twgl.primitives.concatVertices(wallArrays);
     const wallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWallArrays);
     buffers.push({
       type: "wall",
       buffer: wallsBufferInfo,
+      // arrays: combinedWallArrays,
       texture: textureInfos.dirt.texture,
       programInfo: pinfo1,
     });
   }
+  waters.forEach(function(tiles){
+    waterArrays.push(doThings(tiles));
+  });
   if (waterArrays.length > 0) {
     let combinedWaterArrays = twgl.primitives.concatVertices(waterArrays);
     const watersBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterArrays);
     buffers.push({
       type: "water",
       buffer: watersBufferInfo,
+      // arrays: combinedWaterArrays,
+      texture: textureInfos.water.texture,
+      programInfo: pinfo1,
+    });
+  }
+  bigWaters.forEach(function(tiles){
+    bigWaterArrays.push(doThings(tiles));
+  });
+  if (bigWaterArrays.length > 0) {
+    let combinedBigWaterArrays = twgl.primitives.concatVertices(bigWaterArrays);
+    const bigWatersBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedBigWaterArrays);
+    buffers.push({
+      type: "bigWater",
+      // buffer: bigWatersBufferInfo,
+      // arrays: combinedBigWaterArrays,
+      arrays: bigWaterArrays[0],
       texture: textureInfos.water.texture,
       programInfo: pinfo2,
     });
   }
+  waterWalls.forEach(function(tiles){
+    waterWallArrays.push(doThings(tiles));
+  });
   if (waterWallArrays.length > 0) {
     let combinedWaterWallArrays = twgl.primitives.concatVertices(waterWallArrays);
     const waterWallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterWallArrays);
     buffers.push({
       type: "waterWall",
       buffer: waterWallsBufferInfo,
+      // arrays: combinedWaterWallArrays,
       texture: textureInfos.waterWall.texture,
-      programInfo: pinfo2,
+      programInfo: pinfo1,
     });
   }
 
@@ -322,3 +339,5 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
 // gF5hKdbJ5g8wQle4839ZUbTbZw0EU4j8rxN9mCUfb+
 // 3Iu7POSTWWyeXEEWhEJVDXBcV72b+
 // CY6rSDYgKCy4Ay1qYmasjt7DDUQpeVNvuN95bemAGfJ8oDNEzedyEMXJJe/OCe9/gG35g89HnUiXgAAAABJRU5ErkJggg==`
+
+// 

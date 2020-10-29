@@ -57,12 +57,12 @@ let createWorld = function (n) {
     const getMap = () => {
         let worldMap = [];
         for (let ii = 0; ii < atlas.length; ++ii) {
-            let x = ii % N;
-            let y = Math.floor(ii / N);
-            let rankX = Math.floor(Math.abs(coordX) / N);
-            let rankY = Math.floor(Math.abs(coordY) / N);
-            let offset_x = coordX % N;
-            let offset_y = coordY % N;
+            const x = ii % N;
+            const y = Math.floor(ii / N);
+            const rankX = Math.floor(Math.abs(coordX) / N);
+            const rankY = Math.floor(Math.abs(coordY) / N);
+            const offset_x = coordX % N;
+            const offset_y = coordY % N;
             let new_x;
             let new_y;
 
@@ -86,13 +86,9 @@ let createWorld = function (n) {
             new_y += TEST_Y;
 
             bufferArray.forEach(function (item) {
-                worldMap.push({
-                    type: item.type,
-                    buffer: item.buffer,
-                    texture: item.texture,
-                    programInfo: item.programInfo,
-                    worldPosition: [new_x * CHUNK_N * SCALE, new_y * CHUNK_N * SCALE, 0],
-                });
+                const newItem = Object.assign({}, item);
+                newItem.worldPosition = [new_x * CHUNK_N * SCALE, new_y * CHUNK_N * SCALE, 0];
+                worldMap.push(newItem);
             });
         }
         // console.log(worldMap);
@@ -109,7 +105,33 @@ let createWorld = function (n) {
             return out;
         });
         // console.log(worldMap);
-        return worldMap;
+        // return worldMap;
+
+        let bigWatersMap = worldMap.filter(chunk => chunk.type === "bigWater");
+        let bigWaterArrays = bigWatersMap.map((chunk) =>{
+            let newArray = Object.assign({}, chunk.arrays);
+            const wpX = chunk.worldPosition[0];
+            const wpY = chunk.worldPosition[1];
+            const wpZ = chunk.worldPosition[2];
+            newArray.qqqqq = {
+                numComponents: 3,
+                data: [wpX,wpY,wpZ,wpX,wpY,wpZ,wpX,wpY,wpZ,wpX,wpY,wpZ],
+            };
+            return newArray;
+        });
+        let combinedBigWaterArrays = twgl.primitives.concatVertices(bigWaterArrays);
+        const bigWatersBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedBigWaterArrays);
+        let combinedBigWatersMap = {
+            type: "bigWater",
+            buffer: bigWatersBufferInfo,
+            // arrays: combinedBigWaterArrays,
+            // arrays: bigWaterArrays,
+            texture: bigWatersMap[0].texture,
+            programInfo: bigWatersMap[0].programInfo,
+        };        
+        let allOthersMap = worldMap.filter(chunk => chunk.type !== "bigWater");
+        let recombinedMap = allOthersMap.concat(combinedBigWatersMap);
+        return recombinedMap;
     }
 
     return {

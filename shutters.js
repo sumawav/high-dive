@@ -54,24 +54,22 @@ function main() {
   };
 
 
-let atlass = [];
+  let atlass = [];
 
-for (let ii = 0; ii < MAP_N*MAP_N; ++ii){
-  atlass[ii] = 0;
-  if(randInt(50) === 5){
-    atlass[ii] = 1;
+  for (let ii = 0; ii < MAP_N*MAP_N; ++ii){
+    atlass[ii] = 0;
+    if(randInt(50) === 5){
+      atlass[ii] = 1;
+    }
+    if(randInt(100) === 5){
+      atlass[ii] = 2;
+    }
+    if(randInt(200) === 5){
+      atlass[ii] = 3;
+    }
   }
-  if(randInt(100) === 5){
-    atlass[ii] = 2;
-  }
-  if(randInt(200) === 5){
-    atlass[ii] = 3;
-  }
-}
 
-atlass[Math.floor(MAP_N*MAP_N/2)] = 3;
-
-
+  atlass[Math.floor(MAP_N*MAP_N/2)] = 3;
 
   let world = createWorld(MAP_N);
   world.addChunk(createChunk( CHUNK_N, SCALE, getEmptyTerrain(), textureInfos, programInfo, waterProgramInfo));
@@ -80,8 +78,8 @@ atlass[Math.floor(MAP_N*MAP_N/2)] = 3;
   world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainC(),     textureInfos, programInfo, waterProgramInfo));
   // world.addChunk(createChunk( CHUNK_N, SCALE, getTerrainD(),     textureInfos, programInfo, waterProgramInfo));
 
-
   world.addAtlas(atlass);
+
   if (WORLD_LOOPING){
     world.setcb(function(){
       mapChunks = world.getMap();
@@ -89,8 +87,6 @@ atlass[Math.floor(MAP_N*MAP_N/2)] = 3;
     });
   }
   
-  
-
   let mapChunks = world.getMap();
 
   // make buffers for all chunks
@@ -168,25 +164,32 @@ atlass[Math.floor(MAP_N*MAP_N/2)] = 3;
 
       if (item.type !== lastType){
         lastType = item.type;
-        
         gl.useProgram(item.programInfo.program);
         gl.bindTexture(gl.TEXTURE_2D, item.texture);
 
         let textureLocation = gl.getUniformLocation(item.programInfo.program, "u_texture");
         gl.uniform1i(textureLocation, 0);
 
+        let texMatrix = m4.identity();
+        twgl.setUniforms(item.programInfo, {
+          u_viewProjection: viewProjectionMatrix,
+          u_textureMatrix: texMatrix,
+        });
       }
-      let texMatrix = m4.identity(); // needed?
-      // console.log("deltaTime: ", GLOBAL_CLOCK);
-      twgl.setUniforms(item.programInfo, {
-        u_viewProjection: viewProjectionMatrix,
-        u_textureMatrix: texMatrix,
-        u_worldPosition: item.worldPosition,
-        u_clock: GLOBAL_CLOCK,
-      });
 
-        twgl.setBuffersAndAttributes(gl, programInfo, item.buffer);
-  
+      if (item.type !== "bigWater"){
+        twgl.setUniforms(item.programInfo, {
+          u_worldPosition: item.worldPosition,
+        });
+      } 
+      else {
+        twgl.setUniforms(item.programInfo, {
+          // u_worldPosition: item.worldPosition,
+          u_clock: GLOBAL_CLOCK,
+        });
+      }
+
+      twgl.setBuffersAndAttributes(gl, item.programInfo, item.buffer);
       twgl.drawBufferInfo(gl, item.buffer);
       draw_calls++;
     });

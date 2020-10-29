@@ -2,13 +2,11 @@ let MAP_N = 23;
 let TEST_X = -Math.floor(MAP_N/2) + 1;
 let TEST_Y = Math.floor(MAP_N/2) - 1;
 
-// TEST_X * 0
-// TEST_Y * 0
+TEST_X * 0
+TEST_Y * 0
 
 let GLOBAL_CLOCK = 0;
-
 let ROTATE = false;
-
 let ANIMATED_WATER = true;
 let WORLD_LOOPING = true
 let LOG_KEYS = false;
@@ -24,7 +22,7 @@ let Y = 0;
 let Z = 0;
 
 let PI = Math.PI;
-let CAMERA_ANGLE = degToRad(45);
+let CAMERA_ANGLE = degToRad(0);
 let CAMERA_RADIUS = 32;
 let CAMERA_TILT = degToRad(90);
 let CAMERA_X = MAP_N*CHUNK_N * SCALE / 2;

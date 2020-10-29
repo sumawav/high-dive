@@ -17,44 +17,29 @@
 <script  id="general-vertex-shader" type="x-shader/x-vertex">
   attribute vec4 a_position;
   attribute vec2 a_texcoord;
-  attribute vec3 a_normal;
   attribute mat4 a_chunk;
-  
   uniform mat4 u_viewProjection;
   uniform mat4 u_textureMatrix;
   uniform vec3 u_worldPosition;
-  
   varying vec2 v_texcoord;
-  varying vec3 v_normal;
-  
   void main() {
     vec4 cp = a_chunk * a_position;
     vec4 wcp = cp + vec4(u_worldPosition, 0);
     gl_Position = u_viewProjection * wcp;
     v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
-  
-    // v_normal = mat3(a_world) * a_normal;
   }
 </script>
 <script  id="water-vertex-shader" type="x-shader/x-vertex">
-  #define M_PI 3.1415926535897932384626433832795
   attribute vec4 a_position;
   attribute vec2 a_texcoord;
-  attribute vec3 a_normal;
   attribute mat4 a_chunk;
-  
+  attribute vec3 a_qqqqq;
   uniform mat4 u_viewProjection;
   uniform mat4 u_textureMatrix;
-  uniform vec3 u_worldPosition;
   uniform float u_clock;
-  
   varying vec2 v_texcoord;
-  varying vec3 v_normal;
-  
   // Simplex 2D noise
-  //
   vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
-  
   float snoise(vec2 v){
     const vec4 C = vec4(0.211324865405187, 0.366025403784439,
              -0.577350269189626, 0.024390243902439);
@@ -81,18 +66,20 @@
     g.yz = a0.yz * x12.xz + h.yz * x12.yw;
     return 130.0 * dot(m, g);
   }
-  
   void main() {
-    vec2 scaled_world_position = u_worldPosition.xy + (vec2(u_clock, u_clock) / 10.);
-    float wave = 10. + 10. * snoise(scaled_world_position) ;
     vec4 cp = a_chunk * a_position;
-    vec4 wcp = cp + vec4(u_worldPosition, 0) + vec4(0, 0, wave, 0);
+
+    // use below for 'blanket' look
+    // vec2 scaled_world_position = cp.xy + a_qqqqq.xy + (vec2(u_clock, u_clock) / 10.);
+    vec2 scaled_world_position = a_qqqqq.xy + (vec2(u_clock, u_clock) / 10.);
+
+    float wave = 10. + 10. * snoise(scaled_world_position);
+
+    vec4 wcp = cp + vec4(a_qqqqq, 0) + vec4(0, 0, wave, 0);
+
     gl_Position = u_viewProjection * wcp;
     v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
-  
-    // v_normal = mat3(a_world) * a_normal;
   }
-
 </script>
 <!-- fragment shader -->
 <script  id="drawImage-fragment-shader" type="x-shader/x-fragment">
