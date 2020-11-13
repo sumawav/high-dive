@@ -7,7 +7,7 @@ const capturer = new CCapture( {
   verbose: true
 } );
 
-const meter = new FPSMeter();
+// const meter = new FPSMeter();
 
 const m4 = twgl.m4;
 const v3 = twgl.v3;
@@ -16,6 +16,19 @@ twgl.setAttributePrefix('a_');
 const canvas = document.getElementById("canvas");
 const gl = canvas.getContext("webgl");
 
+ 
+function fullscreen(){
+  var el = document.getElementById('canvas');
+
+  if(el.webkitRequestFullScreen) {
+    el.webkitRequestFullScreen();
+  }
+  else {
+    el.mozRequestFullScreen();
+  }            
+}
+ 
+canvas.addEventListener("click",fullscreen)
 
 function main() {
   if (!gl) {
@@ -107,7 +120,7 @@ function main() {
       CAMERA_X -= moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE);
       CAMERA_Y -= moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE);
     }
-    if (upPressed){
+    if (upPressed || ALWAYS_UP){
       CAMERA_Y += moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE);
       CAMERA_X -= moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE);
     }
@@ -174,20 +187,15 @@ function main() {
         twgl.setUniforms(item.programInfo, {
           u_viewProjection: viewProjectionMatrix,
           u_textureMatrix: texMatrix,
-        });
-      }
-
-      if (item.type !== "bigWater"){
-        twgl.setUniforms(item.programInfo, {
           u_worldPosition: item.worldPosition,
-        });
-      } 
-      else {
-        twgl.setUniforms(item.programInfo, {
-          // u_worldPosition: item.worldPosition,
           u_clock: GLOBAL_CLOCK,
         });
       }
+      
+      twgl.setUniforms(item.programInfo, {
+        u_worldPosition: item.worldPosition,
+        u_clock: GLOBAL_CLOCK,
+      });
 
       twgl.setBuffersAndAttributes(gl, item.programInfo, item.buffer);
       twgl.drawBufferInfo(gl, item.buffer);
@@ -208,7 +216,7 @@ function main() {
     draw(deltaTime);
 
     capturer.capture(canvas);
-    meter.tick();
+    // meter.tick();
 
     requestAnimationFrame(render);
   }

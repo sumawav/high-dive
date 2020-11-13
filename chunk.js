@@ -65,6 +65,10 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
         numComponents: 16,
         data: [],
       },
+      worldPosition: {
+        numComponents: 3,
+        data: [0,0,0,0,0,0,0,0,0,0,0,0],
+      },
     };
   }
 
@@ -263,7 +267,6 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       programInfo: pinfo1,
     });
   }
-
   walls.forEach(function(tiles){
     wallArrays.push(doThings(tiles));
   });
@@ -289,7 +292,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       buffer: watersBufferInfo,
       // arrays: combinedWaterArrays,
       texture: textureInfos.water.texture,
-      programInfo: pinfo1,
+      programInfo: pinfo2,
     });
   }
   bigWaters.forEach(function(tiles){
@@ -297,12 +300,12 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
   });
   if (bigWaterArrays.length > 0) {
     let combinedBigWaterArrays = twgl.primitives.concatVertices(bigWaterArrays);
-    const bigWatersBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedBigWaterArrays);
+    // const bigWatersBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedBigWaterArrays);
     buffers.push({
       type: "bigWater",
       // buffer: bigWatersBufferInfo,
-      // arrays: combinedBigWaterArrays,
-      arrays: bigWaterArrays[0],
+      arrays: combinedBigWaterArrays,
+      // arrays: bigWaterArrays[0],
       texture: textureInfos.water.texture,
       programInfo: pinfo2,
     });
@@ -312,13 +315,14 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
   });
   if (waterWallArrays.length > 0) {
     let combinedWaterWallArrays = twgl.primitives.concatVertices(waterWallArrays);
-    const waterWallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterWallArrays);
+    // const waterWallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterWallArrays);
     buffers.push({
       type: "waterWall",
-      buffer: waterWallsBufferInfo,
+      // buffer: waterWallsBufferInfo,
       // arrays: combinedWaterWallArrays,
+      arrays: combinedWaterWallArrays,
       texture: textureInfos.waterWall.texture,
-      programInfo: pinfo1,
+      programInfo: pinfo2,
     });
   }
 

@@ -1,4 +1,9 @@
 
+if (SLIDERS){
+  
+
+
+
 // Setup a ui.
 webglLessonsUI.setupSlider("#fieldofview", {
     value: radToDeg(FOV_ANGLE),
@@ -72,3 +77,6 @@ webglLessonsUI.setupSlider("#fieldofview", {
   function updateWorldRotate(event, ui) {
     WORLD_ROTATE = degToRad(ui.value);
   }
+
+
+}

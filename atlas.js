@@ -33,20 +33,24 @@ let createWorld = function (n) {
         if (oldY === null)
             oldY = newY;
         if (newX > oldX) {
-            console.log("X+");
+            // console.log("X+");
+            // console.log("X: " + newX + " Y: " + newY);
             coordX++;
             cb();
         } else if (newX < oldX) {
-            console.log("X-");
+            // console.log("X-");
+            // console.log("X: " + newX + " Y: " + newY);
             coordX--;
             cb();
         }
         if (newY > oldY) {
-            console.log("Y+");
+            // console.log("Y+");
+            // console.log("X: " + newX + " Y: " + newY);
             coordY++;
             cb();
         } else if (newY < oldY) {
-            console.log("Y-");
+            // console.log("Y-");
+            // console.log("X: " + newX + " Y: " + newY);
             coordY--;
             cb();
         }
@@ -113,7 +117,7 @@ let createWorld = function (n) {
             const wpX = chunk.worldPosition[0];
             const wpY = chunk.worldPosition[1];
             const wpZ = chunk.worldPosition[2];
-            newArray.qqqqq = {
+            newArray.worldPosition = {
                 numComponents: 3,
                 data: [wpX,wpY,wpZ,wpX,wpY,wpZ,wpX,wpY,wpZ,wpX,wpY,wpZ],
             };
@@ -128,9 +132,42 @@ let createWorld = function (n) {
             // arrays: bigWaterArrays,
             texture: bigWatersMap[0].texture,
             programInfo: bigWatersMap[0].programInfo,
+            worldPosition: [0, 0, 0],
         };        
-        let allOthersMap = worldMap.filter(chunk => chunk.type !== "bigWater");
-        let recombinedMap = allOthersMap.concat(combinedBigWatersMap);
+        let waterWallsMap = worldMap.filter(chunk => chunk.type === "waterWall");
+        let waterWallArrays = waterWallsMap.map((chunk) =>{
+            let newArray = Object.assign({}, chunk.arrays);
+            const wpX = chunk.worldPosition[0];
+            const wpY = chunk.worldPosition[1];
+            const wpZ = chunk.worldPosition[2];
+            newArray.worldPosition = {
+                numComponents: 3,
+                data: [     
+                    // i think there is a way to not have to do this. 
+                    // look up constant attributes
+                    wpX,wpY,wpZ,wpX,wpY,wpZ,wpX,wpY,wpZ,wpX,wpY,wpZ,
+                    wpX,wpY,wpZ,wpX,wpY,wpZ,wpX,wpY,wpZ,wpX,wpY,wpZ
+                ],
+            };
+            return newArray;
+        });
+        let combinedWaterWallArrays = twgl.primitives.concatVertices(waterWallArrays);
+        const waterWallsBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterWallArrays);
+        let combinedWaterWallsMap = {
+            type: "waterWall",
+            buffer: waterWallsBufferInfo,
+            // arrays: combinedBigWaterArrays,
+            // arrays: bigWaterArrays,
+            texture: waterWallsMap[0].texture,
+            programInfo: waterWallsMap[0].programInfo,
+            worldPosition: [0, 0, 0],
+        }; 
+        let recombinedMap = worldMap
+            .filter(chunk => chunk.type !== "bigWater")
+            .filter(chunk => chunk.type !== "waterWall");
+
+        recombinedMap.push(combinedBigWatersMap);
+        recombinedMap.push(combinedWaterWallsMap);
         return recombinedMap;
     }
 
