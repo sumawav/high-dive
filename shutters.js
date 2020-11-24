@@ -4,7 +4,7 @@
 const capturer = new CCapture( {
   format: 'webm',
   framerate: 30,
-  verbose: true
+  verbose: false,
 } );
 
 // const meter = new FPSMeter();
@@ -16,7 +16,6 @@ twgl.setAttributePrefix('a_');
 const canvas = document.getElementById("canvas");
 const gl = canvas.getContext("webgl");
 
- 
 function fullscreen(){
   var el = document.getElementById('canvas');
 
@@ -25,15 +24,15 @@ function fullscreen(){
   }
   else {
     el.mozRequestFullScreen();
-  }            
+  }
 }
- 
+
 canvas.addEventListener("click",fullscreen)
 
 function main() {
   if (!gl) {
     return;
-  }  
+  }
   twgl.resizeCanvasToDisplaySize(gl.canvas);
 
   // setup GLSL program
@@ -71,15 +70,15 @@ function main() {
 
   for (let ii = 0; ii < MAP_N*MAP_N; ++ii){
     atlass[ii] = 0;
-    if(randInt(50) === 5){
-      atlass[ii] = 1;
-    }
-    if(randInt(100) === 5){
-      atlass[ii] = 2;
-    }
-    if(randInt(200) === 5){
-      atlass[ii] = 3;
-    }
+    // if(randInt(150) === 5){
+    //   atlass[ii] = 2;
+    // }
+    // if(randInt(150) === 5){
+    //   atlass[ii] = 1;
+    // }
+    // if(randInt(225) === 5){
+    //   atlass[ii] = 3;
+    // }
   }
 
   atlass[Math.floor(MAP_N*MAP_N/2)] = 3;
@@ -99,34 +98,34 @@ function main() {
       allBuffers = mapChunks;
     });
   }
-  
+
   let mapChunks = world.getMap();
 
   // make buffers for all chunks
   let allBuffers = mapChunks;
 
-  console.log(allBuffers);
+  // console.log(allBuffers);
 
   allBuffers = mapChunks;
 
   function update(deltaTime) {
-    let cameraSpeed = shiftPressed ? 0.1*SPEED : SPEED;
+    let cameraSpeed = shiftPressed ? 10*SPEED : SPEED;
     let moveSpeed = cameraSpeed * SCALE;
     if (rightPressed){
-      CAMERA_X += moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE);
-      CAMERA_Y += moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE);
+      CAMERA_X += moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE + DIRECTION_OFFSET);
+      CAMERA_Y += moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE + DIRECTION_OFFSET);
     }
     if (leftPressed){
-      CAMERA_X -= moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE);
-      CAMERA_Y -= moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE);
+      CAMERA_X -= moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE + DIRECTION_OFFSET);
+      CAMERA_Y -= moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE + DIRECTION_OFFSET);
     }
-    if (upPressed || ALWAYS_UP){
-      CAMERA_Y += moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE);
-      CAMERA_X -= moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE);
+    if (upPressed){
+      CAMERA_Y += moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE + DIRECTION_OFFSET);
+      CAMERA_X -= moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE + DIRECTION_OFFSET);
     }
     if (downPressed){
-      CAMERA_Y -= moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE);
-      CAMERA_X += moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE);
+      CAMERA_Y -= moveSpeed * deltaTime * Math.cos(CAMERA_ANGLE + DIRECTION_OFFSET);
+      CAMERA_X += moveSpeed * deltaTime * Math.sin(CAMERA_ANGLE + DIRECTION_OFFSET);
     }
     if (leftRotate){
       CAMERA_ANGLE += deltaTime * cameraSpeed/SPEED;
@@ -149,8 +148,8 @@ function main() {
     GLOBAL_CLOCK += deltaTime;
     twgl.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    // gl.clearColor(104/255, 134/255, 197/255, 1.0);
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clearColor(104/255, 134/255, 197/255, 1.0);
+    // gl.clearColor(0.0, 0.0, 0.0, 1.0);
     // gl.depthMask(true);
     // gl.clearDepth(1);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -161,7 +160,7 @@ function main() {
     // gl.enable(gl.BLEND);
     // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    let projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 4000);
+    let projectionMatrix = m4.perspective(FOV_ANGLE, gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 8000);
     let cameraMatrix = m4.identity();
     cameraMatrix = m4.translate(cameraMatrix, [CAMERA_X, CAMERA_Y, CAMERA_Z]);
     cameraMatrix = m4.rotateZ(cameraMatrix, CAMERA_ANGLE);
@@ -191,7 +190,7 @@ function main() {
           u_clock: GLOBAL_CLOCK,
         });
       }
-      
+
       twgl.setUniforms(item.programInfo, {
         u_worldPosition: item.worldPosition,
         u_clock: GLOBAL_CLOCK,
@@ -208,6 +207,7 @@ function main() {
 
   var then = 0;
   function render(time) {
+    requestAnimationFrame(render);
     let now = time * 0.001;
     let deltaTime = Math.min(0.1, now - then);
     then = now;
@@ -218,9 +218,9 @@ function main() {
     capturer.capture(canvas);
     // meter.tick();
 
-    requestAnimationFrame(render);
   }
   requestAnimationFrame(render);
 }
 
+// upPressed = true;
 main();

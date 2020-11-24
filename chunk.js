@@ -203,13 +203,13 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       }
     }
     if (tile.z === 0){
-      waters.push(tile);
+      // waters.push(tile);
     } else {
       tilesNotWaters.push(tile);
     }
   }
 
-  if (waters.length === size*size){
+  // if (waters.length === size*size){
     waters = [];
     if (ANIMATED_WATER){
       console.log("ANIMATED BIG WATER");
@@ -227,7 +227,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       };      
       makeWaterWall(size/2, size/2, 1*scale, 2*scale);
       bigWaters.push(movingWater);
-    } else {
+    // } else {
       // console.log("BIG WATER");
       // let bigWater = {
       //   x: (step * size / 2) - apothem,
@@ -242,9 +242,9 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       // };      
       // waters.push(bigWater);
     }
-  } else {
-    makeWaterWall(size/2, size/2, 1*scale, 2*scale);
-  }
+  // } else {
+    // makeWaterWall(size/2, size/2, 1*scale, 2*scale);
+  // }
 
   let tileArrays = [];
   let wallArrays = [];
@@ -262,7 +262,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
     buffers.push({
       type: "tile",
       buffer: tilesBufferInfo,
-      // arrays:combinedTileArrays,
+      arrays:combinedTileArrays,
       texture: textureInfos.grass.texture,
       programInfo: pinfo1,
     });
@@ -276,7 +276,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
     buffers.push({
       type: "wall",
       buffer: wallsBufferInfo,
-      // arrays: combinedWallArrays,
+      arrays: combinedWallArrays,
       texture: textureInfos.dirt.texture,
       programInfo: pinfo1,
     });
@@ -284,17 +284,17 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
   waters.forEach(function(tiles){
     waterArrays.push(doThings(tiles));
   });
-  if (waterArrays.length > 0) {
-    let combinedWaterArrays = twgl.primitives.concatVertices(waterArrays);
-    const watersBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterArrays);
-    buffers.push({
-      type: "water",
-      buffer: watersBufferInfo,
-      // arrays: combinedWaterArrays,
-      texture: textureInfos.water.texture,
-      programInfo: pinfo2,
-    });
-  }
+  // if (waterArrays.length > 0) {
+  //   let combinedWaterArrays = twgl.primitives.concatVertices(waterArrays);
+  //   const watersBufferInfo = twgl.createBufferInfoFromArrays(gl, combinedWaterArrays);
+  //   buffers.push({
+  //     type: "water",
+  //     buffer: watersBufferInfo,
+  //     // arrays: combinedWaterArrays,
+  //     texture: textureInfos.water.texture,
+  //     programInfo: pinfo2,
+  //   });
+  // }
   bigWaters.forEach(function(tiles){
     bigWaterArrays.push(doThings(tiles));
   });

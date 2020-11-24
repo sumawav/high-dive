@@ -6,6 +6,7 @@ let createWorld = function (n) {
     let oldY;
     let coordX = 0;
     let coordY = 0;
+    let bars = [];
 
     let cb = () => { };
 
@@ -15,6 +16,35 @@ let createWorld = function (n) {
 
     const addAtlas = function (e) {
         atlas = e;
+
+        for (let row = 0; row < 3; ++row) {                  // only 1st slice for now
+            let slice = atlas.slice(N*row, N*(row+1));
+            let rankedArrays = {};
+            let sliceArrays = [];
+            for (let rank=0; rank < slice.length; ++rank){
+                let chunk = chunks[slice[rank]];
+                chunk.forEach((item) => {
+                    let newArrays = Object.assign({}, item.arrays);
+                    let numVerts = newArrays.position.data.length / newArrays.position.numComponents;
+                    newArrays.rank = {
+                        numComponents: 1,
+                        data: new Array(numVerts).fill(rank),
+                    }
+                    let type = item.type;
+                    if (!rankedArrays[type]) {
+                        rankedArrays[type] = {
+                            arrays: [],
+                            programInfo: item.programInfo,
+                            texture: item.texture,
+                            type: type,                            
+                        }
+                    }
+                    rankedArrays[type].arrays.push(newArrays);
+                });
+            }
+            console.log(rankedArrays);
+            console.log(Object.values(rankedArrays));
+        }
     }
 
     const getAtlas = function () {
