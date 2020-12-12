@@ -1,4 +1,4 @@
-let MAP_N = 5;
+let MAP_N = 43;
 let TEST_X = -Math.floor(MAP_N/2) + 1;
 let TEST_Y = Math.floor(MAP_N/2) - 1;
 
@@ -11,7 +11,7 @@ let ROTATE = false;
 let ANIMATED_WATER = true;
 let WORLD_LOOPING = false;
 let LOG_KEYS = false;
-let LOG_DRAW_CALLS = false;
+let LOG_DRAW_CALLS = true;
 let WORLD_ROTATE = 0;
 let CHUNK_N = 16;
 

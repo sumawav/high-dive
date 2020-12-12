@@ -14,7 +14,7 @@
   <div id="fps"></div>
 </div>
 <!-- vertex shaders -->
-<script  id="general-vertex-shader" type="x-shader/x-vertex">
+<!-- <script  id="general-vertex-shader" type="x-shader/x-vertex">
   attribute vec4 a_position;
   attribute vec2 a_texcoord;
   attribute mat4 a_chunk;
@@ -30,7 +30,7 @@
     gl_Position = u_viewProjection * wcp;
     v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
   }
-</script>
+</script> -->
 <script  id="water-vertex-shader" type="x-shader/x-vertex">
   attribute vec4 a_position;
   attribute vec2 a_texcoord;
@@ -79,6 +79,25 @@
     
     vec4 wcp = a_chunk * a_position + vec4(a_worldPosition, 0) + vec4(u_worldPosition, 0)+ vec4(0, 0, wave, 0);
 
+    gl_Position = u_viewProjection * wcp;
+    v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
+  }
+</script>
+<script  id="bar-vertex-shader" type="x-shader/x-vertex">
+  attribute vec4 a_position;
+  attribute vec2 a_texcoord;
+  attribute mat4 a_chunk;
+  attribute float a_rank;
+  uniform mat4 u_viewProjection;
+  uniform mat4 u_textureMatrix;
+  uniform float u_bar;
+  varying vec2 v_texcoord;
+
+  void main() {
+    float scale = 160.0;
+
+    vec4 cp = a_chunk * a_position;
+    vec4 wcp = cp + vec4(a_rank * scale, u_bar*scale, 0, 0);
     gl_Position = u_viewProjection * wcp;
     v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
   }

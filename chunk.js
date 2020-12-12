@@ -1,4 +1,4 @@
-function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
+function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2, pinfo3){
 
   // let tiles = [];
   let walls = [];
@@ -264,7 +264,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       buffer: tilesBufferInfo,
       arrays:combinedTileArrays,
       texture: textureInfos.grass.texture,
-      programInfo: pinfo1,
+      programInfo: pinfo3,
     });
   }
   walls.forEach(function(tiles){
@@ -278,7 +278,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       buffer: wallsBufferInfo,
       arrays: combinedWallArrays,
       texture: textureInfos.dirt.texture,
-      programInfo: pinfo1,
+      programInfo: pinfo3,
     });
   }
   waters.forEach(function(tiles){
@@ -307,7 +307,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       arrays: combinedBigWaterArrays,
       // arrays: bigWaterArrays[0],
       texture: textureInfos.water.texture,
-      programInfo: pinfo2,
+      programInfo: pinfo3,
     });
   }
   waterWalls.forEach(function(tiles){
@@ -322,7 +322,7 @@ function createChunk(size, scale, terrain, textureInfos, pinfo1, pinfo2){
       // arrays: combinedWaterWallArrays,
       arrays: combinedWaterWallArrays,
       texture: textureInfos.waterWall.texture,
-      programInfo: pinfo2,
+      programInfo: pinfo3,
     });
   }
 
